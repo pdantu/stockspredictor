@@ -458,5 +458,5 @@ for index, row in newdf.iterrows():
 newdf['PE'] = pe
 newdf['Eps'] = eps
 newdf['Both'] = both"""
-newdf.to_csv('xleaction.csv')
+newdf.to_csv(path + '/results/xleaction.csv')
 #pricesdf.to_csv('xlevalue.csv')
