@@ -1,17 +1,12 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Aug  8 20:48:09 2022
-
-@author: archisdhar
-"""
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import yfinance as yf
+import os
+path = os.getcwd()
+print(path)
 
-spy = pd.read_csv('/Users/archisdhar/Downloads/SPY-holdings.csv')
+spy = pd.read_csv(path + '/holdings/SPY-holdings.csv')
 
 
 sectors = ['XLE', 'XLK', 'XLC', 'XLB', 'XLY', 'XLU', 'XLI', 'XLP', 'XLRE', 'XLF', 'XLV']
@@ -268,6 +263,8 @@ newdf['RSI'] = s
 
 newdf['price'] = pricern
 newdf['Went Over 70'] = rsios
+
+xle = pd.read_csv(path + '/metrics/XLE-metrics.csv')
 xle = pd.read_csv('/Users/archis/xlk.csv')
 
 #print(xle.mean()[0])
