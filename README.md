@@ -1,6 +1,22 @@
 # stockspredicter
 
 
+# 08/13/2022
+
+how calculate.py works: 
+
+ loop(path) --> path is the path to a directory, the loop function retursn a list of all the contents in the director 
+            --> basically python's way of getting the result to 'ls' in linux
+
+then the for loop (for name in f_list) --> goes through each csv.. for each csv it reads it in as pandas df
+                                       --> for each df it calls process 
+
+process(df) --> this is the function where u should add ur code for a single ETF. the etf's metrics are in the df. 
+
+
+
+
+
 # 08/12/2022
 
 Tasks -- 
