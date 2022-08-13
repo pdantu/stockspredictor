@@ -14,6 +14,7 @@ symbols = []
 def main():
     
     f_list = loop(path)
+    
     d_list = []
     for name in f_list:
         df = pd.read_csv('{0}/metrics/{1}'.format(path,name))
