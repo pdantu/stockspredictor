@@ -6,11 +6,12 @@ import yfinance as yf
 import csv
 import os
 path = os.getcwd()
-sectorETF = ['XLK','XLF','XLU','XLI','XLE','XLV','XLP','XLY','XLC','XLRE','XLB','XLC']
+sectorETF = ['XLK','XLF','XLU','XLI','XLE','XLV','XLP','XLY','XLC','XLRE','XLB','XLC','SPY','QQQ']
 
 def main():
     print(path)
     print('hello')
+    addOne('SPY')
 
 def runAll():
     stocks = preprocessAll(sectorETF)
@@ -20,7 +21,7 @@ def runAll():
     generateAll(stocks)
 
 def runOne(sector):
-    f = open('stocks.json','r')
+    f = open('{0}/stocks.json'.format(path),'r')
     stocks = json.load(f)
     getSectData(sector,stocks[sector])
     f.close()
@@ -70,9 +71,6 @@ def getSectData(sector,stock_list): #singlesectorDict
     for stock in stock_list: 
         newDict[sector][stock] = {}
         newDict[sector][stock] = singleStockData(stock)
-
-    with open("{0}/jsons/{1}.json".format(path,sector), "w") as outfile:
-        json.dump(newDict[sector], outfile,indent=4)
     
     df = pd.DataFrame.from_dict(newDict[sector],orient='index')
     df.to_csv('{0}/metrics/{1}-metrics.csv'.format(path,sector))
