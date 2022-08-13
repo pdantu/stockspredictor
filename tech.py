@@ -47,7 +47,7 @@ def getScore(etf, stock, columns):
 
         mean = metricdf[x].mean()
         val = tickerrow[x].iloc[0]
-        if val / mean < 1:
+        if val / mean > 1:
             val = val * factordict.get(x)
         a = val / mean
         score += a
@@ -64,9 +64,10 @@ def getETFaction(etf):
     else:
         return(3)
 
-stocksdf = pd.DataFrame(columns=['Ticker', 'Technical Action', 'Score'])
+#stocksdf = pd.DataFrame(columns=['Ticker', 'Technical Action', 'Score'])
 portfolio = pd.DataFrame()
 for x in sectors:
+    stocksdf = pd.DataFrame(columns=['Ticker', 'Technical Action', 'Score'])
     df = pd.read_csv(path + '/holdings/' + x + '-holdings.csv')
 
     num = getETFaction(x)
