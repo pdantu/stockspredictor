@@ -1,0 +1,104 @@
+Holding,Symbol,Weighting
+Apple Inc.,AAPL,13.38%
+Microsoft Corporation,MSFT,10.56%
+"Amazon.com, Inc.",AMZN,7.09%
+Tesla Inc,TSLA,4.47%
+Alphabet Inc. Class C,GOOG,3.69%
+Alphabet Inc. Class A,GOOGL,3.52%
+NVIDIA Corporation,NVDA,3.11%
+Meta Platforms Inc. Class A,META,2.99%
+"PepsiCo, Inc.",PEP,1.97%
+Costco Wholesale Corporation,COST,1.94%
+Broadcom Inc.,AVGO,1.82%
+Adobe Incorporated,ADBE,1.68%
+"Cisco Systems, Inc.",CSCO,1.54%
+"T-Mobile US, Inc.",TMUS,1.47%
+Comcast Corporation Class A,CMCSA,1.41%
+Texas Instruments Incorporated,TXN,1.37%
+Qualcomm Incorporated,QCOM,1.33%
+"Advanced Micro Devices, Inc.",AMD,1.3%
+Intel Corporation,INTC,1.17%
+Amgen Inc.,AMGN,1.09%
+Intuit Inc.,INTU,1.09%
+Honeywell International Inc.,HON,1.09%
+"PayPal Holdings, Inc.",PYPL,0.93%
+"Netflix, Inc.",NFLX,0.88%
+"Automatic Data Processing, Inc.",ADP,0.85%
+Starbucks Corporation,SBUX,0.8%
+"Analog Devices, Inc.",ADI,0.74%
+"Applied Materials, Inc.",AMAT,0.74%
+"Mondelez International, Inc. Class A",MDLZ,0.72%
+"Intuitive Surgical, Inc.",ISRG,0.69%
+Booking Holdings Inc.,BKNG,0.67%
+"Gilead Sciences, Inc.",GILD,0.64%
+"Charter Communications, Inc. Class A",CHTR,0.63%
+Vertex Pharmaceuticals Incorporated,VRTX,0.61%
+CSX Corporation,CSX,0.6%
+"Micron Technology, Inc.",MU,0.56%
+"Fiserv, Inc.",FISV,0.56%
+Lam Research Corporation,LRCX,0.56%
+"Regeneron Pharmaceuticals, Inc.",REGN,0.56%
+"Moderna, Inc.",MRNA,0.56%
+"Activision Blizzard, Inc.",ATVI,0.51%
+"Synopsys, Inc.",SNPS,0.47%
+Keurig Dr Pepper Inc.,KDP,0.46%
+KLA Corporation,KLAC,0.45%
+"MercadoLibre, Inc.",MELI,0.43%
+"Marriott International, Inc. Class A",MAR,0.43%
+"American Electric Power Company, Inc.",AEP,0.42%
+"Cadence Design Systems, Inc.",CDNS,0.42%
+"Palo Alto Networks, Inc.",PANW,0.42%
+"Autodesk, Inc.",ADSK,0.4%
+ASML Holding NV ADR,ASML,0.39%
+"Paychex, Inc.",PAYX,0.39%
+Monster Beverage Corporation,MNST,0.39%
+"Marvell Technology, Inc.",MRVL,0.38%
+NXP Semiconductors NV,NXPI,0.38%
+"O\'Reilly Automotive, Inc.",ORLY,0.38%
+Kraft Heinz Company,KHC,0.38%
+"Airbnb, Inc. Class A",ABNB,0.37%
+Cintas Corporation,CTAS,0.36%
+Exelon Corporation,EXC,0.36%
+"Fortinet, Inc.",FTNT,0.35%
+"CrowdStrike Holdings, Inc. Class A",CRWD,0.35%
+Atlassian Corp. Plc Class A,TEAM,0.33%
+Xcel Energy Inc.,XEL,0.33%
+Lululemon Athletica Inc,LULU,0.32%
+Microchip Technology Incorporated,MCHP,0.32%
+Astrazeneca PLC Sponsored ADR,AZN,0.31%
+"Dollar Tree, Inc.",DLTR,0.3%
+Electronic Arts Inc.,EA,0.3%
+"DexCom, Inc.",DXCM,0.29%
+"Illumina, Inc.",ILMN,0.29%
+Cognizant Technology Solutions Corporation Class A,CTSH,0.29%
+"Old Dominion Freight Line, Inc.",ODFL,0.29%
+"Workday, Inc. Class A",WDAY,0.28%
+"Walgreens Boots Alliance, Inc.",WBA,0.28%
+Datadog Inc Class A,DDOG,0.27%
+"IDEXX Laboratories, Inc.",IDXX,0.27%
+Biogen Inc.,BIIB,0.26%
+PACCAR Inc,PCAR,0.26%
+Verisk Analytics Inc,VRSK,0.26%
+"Seagen, Inc.",SGEN,0.26%
+"Copart, Inc.",CPRT,0.25%
+"Ross Stores, Inc.",ROST,0.25%
+Fastenal Company,FAST,0.25%
+"Lucid Group, Inc.",LCID,0.25%
+Baidu Inc Sponsored ADR Class A,BIDU,0.24%
+"JD.com, Inc. Sponsored ADR Class A",JD,0.23%
+"Zoom Video Communications, Inc. Class A",ZM,0.23%
+eBay Inc.,EBAY,0.22%
+"Sirius XM Holdings, Inc.",SIRI,0.21%
+"Zscaler, Inc.",ZS,0.21%
+"ANSYS, Inc.",ANSS,0.2%
+Constellation Energy Corporation,CEG,0.2%
+"Align Technology, Inc.",ALGN,0.18%
+"VeriSign, Inc.",VRSN,0.18%
+"Pinduoduo, Inc. Sponsored ADR Class A",PDD,0.17%
+"Match Group, Inc.",MTCH,0.15%
+Splunk Inc.,SPLK,0.15%
+"Skyworks Solutions, Inc.",SWKS,0.14%
+Netease Inc Sponsored ADR,NTES,0.13%
+U.S. Dollar,Other,0.13%
+"Okta, Inc. Class A",OKTA,0.13%
+"DocuSign, Inc.",DOCU,0.12%
