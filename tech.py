@@ -47,18 +47,29 @@ def getScore(etf, stock, columns):
 
         mean = metricdf[x].mean()
         val = tickerrow[x].iloc[0]
-        val = val * factordict.get(x)
+        if val / mean < 1:
+            val = val * factordict.get(x)
         a = val / mean
         score += a
         
     return(score)
 
+def getETFaction(etf):
+    a = yf.Ticker(etf)
+    prices = a.history('max')
+    prices['20DayEMA'] = prices['Close'].ewm(span = 20).mean()
+    prices['100DayEMA'] = prices['Close'].ewm(span = 100).mean()
+    if prices['20DayEMA'].iloc[len(prices) - 1] > prices['100DayEMA'].iloc[len(prices) - 1]:
+        return(2)
+    else:
+        return(3)
 
 stocksdf = pd.DataFrame(columns=['Ticker', 'Technical Action', 'Score'])
+portfolio = pd.DataFrame()
 for x in sectors:
     df = pd.read_csv(path + '/holdings/' + x + '-holdings.csv')
 
-    
+    num = getETFaction(x)
     
     for y in df['Symbol']:
         if y == 'Other':
@@ -69,8 +80,8 @@ for x in sectors:
         prices = prices.reset_index()
         if prices.shape[0] == 0:
             continue
-        prices['50DayEMA'] = prices['Close'].ewm(span = 50).mean()
-        prices['200DayEMA'] = prices['Close'].ewm(span = 200).mean()
+        prices['20DayEMA'] = prices['Close'].ewm(span = 20).mean()
+        prices['100DayEMA'] = prices['Close'].ewm(span = 100).mean()
         prices['50DaySMA'] = prices['Close'].rolling(50).mean()
         prices['200DaySMA'] = prices['Close'].rolling(200).mean()
         prices['26DayEMA'] = prices['Close'].ewm(26).mean()
@@ -81,7 +92,7 @@ for x in sectors:
         
         z = 0
         
-        if prices['50DayEMA'].iloc[len(prices) - 1] > prices['200DayEMA'].iloc[len(prices) - 1]:
+        if prices['20DayEMA'].iloc[len(prices) - 1] > prices['100DayEMA'].iloc[len(prices) - 1]:
             z += 1
         else:
             z -= 1
@@ -104,11 +115,14 @@ for x in sectors:
 
         
     stocksdf = stocksdf.sort_values(by=['Score'], ascending=False)
-    print(stocksdf.head())
-    
-    
-    stocksdf.to_csv(path + '/results/' + x + 'action.csv')
-        
+    buys = stocksdf[stocksdf['Technical Action'] == 'Buy']
+    buys = buys.head(num)
+    portfolio = pd.concat([portfolio, buys])
+
+    stocksdf.to_csv(path + '/results/' + x + '-action.csv')
+    buys.to_csv(path + '/results/' + x + '-buys.csv')
+
+portfolio.to_csv(path + '/results/portfolio.csv')  
     
 
 
