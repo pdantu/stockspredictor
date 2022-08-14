@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import yfinance as yf
 import os
+import math
 path = os.getcwd()
 print(path)
 
@@ -35,7 +36,7 @@ def rsi(df, periods = 14, ema = True):
     #print(type(rsi))
     return rsi
 
-def getScore(etf, stock, columns):
+def getScore(etf, stock, sharpe, columns):
     metricdf = pd.read_csv(path + '/metrics/' + etf + '-metrics.csv')
     metricdf = metricdf.fillna(0)
     factordict = {'Beta': -1 ,'Dividend Yield': 1, 'Forward P/E' : -1,'Trailing P/E': -1, 'Market Cap': 1, 'Trailing EPS': 1, 'Forward EPS': 1, 'PEG Ratio': -1, 'Price To Book': -1, 'E/V to EBITDA': -1, 'Free Cash Flow': 1, 'Deb To Equity': -1 ,'Earnings Growth': 1,'Ebitda margins': 1,'Quick Ratio': 1,'Target Mean Price': 1,'Return on Equity': 1 ,'Revenue Growth': 1,'Current Ratio': 1,'Current Price': 1}
@@ -43,7 +44,9 @@ def getScore(etf, stock, columns):
     subdf = metricdf[columns]
     #print(metricdf['Unnamed: 0'].head())
     score = 0
-    tickerrow = metricdf[metricdf['Unnamed: 0'] == stock]
+    metricdf.rename(columns={metricdf.columns[0]:"Symbol"}, inplace=True)
+    #print(metricdf['Symbol'].head())
+    tickerrow = metricdf[metricdf['Symbol'] == stock]
     for x in columns.keys():
 
         mean = metricdf[x].mean()
@@ -59,7 +62,7 @@ def getScore(etf, stock, columns):
             val = val * factordict.get(x) * columns.get(x)
         a = val / mean
         score += a
-        
+    score += sharpe * 10
     return(score)
 
 def getETFaction(etf):
@@ -83,11 +86,15 @@ for x in sectors:
     for y in df['Symbol']:
         if y == 'Other':
             continue
+        if y == 'SSIXX':
+            continue
         a  = yf.Ticker(y)
         
         prices = a.history('max')
         prices = prices.reset_index()
         if prices.shape[0] == 0:
+            continue
+        if prices.empty:
             continue
         prices['20DayEMA'] = prices['Close'].ewm(span = 20).mean()
         prices['100DayEMA'] = prices['Close'].ewm(span = 100).mean()
@@ -98,6 +105,18 @@ for x in sectors:
         prices['MACD'] = prices['12DayEMA'] - prices['26DayEMA']
         prices['MACD Signal'] = prices['MACD'].ewm(9).mean()
         subprices = prices.tail(253)
+        z = subprices['Close'].diff()
+        #print(y)
+        #print(len(z))
+        returns = []
+        for i in range(1,len(z)):
+            d = z.iloc[i] / subprices['Close'].iloc[i-1]
+            returns.append(d)
+        
+        mean = sum(returns) / len(returns)
+        variance = sum([((k - mean) ** 2) for k in returns]) / len(returns)
+        res = variance ** 0.5
+        sharpe = mean / res * math.sqrt(253)
         
         z = 0
         
@@ -116,7 +135,8 @@ for x in sectors:
             if k > 70:
                 z -= 1
         
-        sc = getScore(x, y, {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1})
+        sc = getScore(x, y, sharpe, {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1})
+        
         if z == 2:
             stocksdf.loc[len(stocksdf.index)] = [x, y, 'Buy', sc]
         else: 
@@ -126,11 +146,15 @@ for x in sectors:
     stocksdf = stocksdf.sort_values(by=['Score'], ascending=False)
     buys = stocksdf[stocksdf['Technical Action'] == 'Buy']
     #buys = buys.head(num)
-    portfolio = pd.concat([portfolio, buys.head(num)])
+    strongbuys = buys[buys['Score'] > 0]
+    portfolio = pd.concat([portfolio, strongbuys.head(num)])
 
     stocksdf.to_csv(path + '/results/' + x + '-action.csv')
     buys.to_csv(path + '/results/' + x + '-buys.csv')
 
+scoresum = portfolio['Score'].sum()
+portfolio['weight'] = (portfolio['Score'] / scoresum) * 100
+portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
 portfolio.to_csv(path + '/results/mainportfolio.csv')  
     
 
