@@ -43,12 +43,14 @@ def getScore(etf, stock, columns):
     #print(metricdf['Unnamed: 0'].head())
     score = 0
     tickerrow = metricdf[metricdf['Unnamed: 0'] == stock]
-    for x in columns:
+    for x in columns.keys():
 
         mean = metricdf[x].mean()
         val = tickerrow[x].iloc[0]
         if val / mean > 1:
-            val = val * factordict.get(x)
+            val = val * factordict.get(x) * columns.get(x)
+        else:
+            val = val * -1 * factordict.get(x) * columns.get(x)
         a = val / mean
         score += a
         
@@ -67,7 +69,7 @@ def getETFaction(etf):
 #stocksdf = pd.DataFrame(columns=['Ticker', 'Technical Action', 'Score'])
 portfolio = pd.DataFrame()
 for x in sectors:
-    stocksdf = pd.DataFrame(columns=['Ticker', 'Technical Action', 'Score'])
+    stocksdf = pd.DataFrame(columns=['ETF', 'Ticker', 'Technical Action', 'Score'])
     df = pd.read_csv(path + '/holdings/' + x + '-holdings.csv')
 
     num = getETFaction(x)
@@ -108,11 +110,11 @@ for x in sectors:
             if k > 70:
                 z -= 1
         
-        sc = getScore(x, y, ['Revenue Growth', 'Forward P/E', 'Forward EPS'])
+        sc = getScore(x, y, {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1})
         if z == 2:
-            stocksdf.loc[len(stocksdf.index)] = [y, 'Buy', sc]
+            stocksdf.loc[len(stocksdf.index)] = [x, y, 'Buy', sc]
         else: 
-            stocksdf.loc[len(stocksdf.index)] = [y, 'Sell', sc]
+            stocksdf.loc[len(stocksdf.index)] = [x, y, 'Sell', sc]
 
         
     stocksdf = stocksdf.sort_values(by=['Score'], ascending=False)
