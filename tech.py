@@ -47,11 +47,16 @@ def getScore(etf, stock, columns):
     for x in columns.keys():
 
         mean = metricdf[x].mean()
+        sd = metricdf[x].std()
         val = tickerrow[x].iloc[0]
-        if val / mean > 1:
+        if val - mean > 0:
+            val = val - mean
+            val = val / sd
             val = val * factordict.get(x) * columns.get(x)
         else:
-            val = val * -1 * factordict.get(x) * columns.get(x)
+            val = val - mean
+            val = val / sd
+            val = val * factordict.get(x) * columns.get(x)
         a = val / mean
         score += a
         
