@@ -63,9 +63,9 @@ def getETFaction(etf):
     prices['20DayEMA'] = prices['Close'].ewm(span = 20).mean()
     prices['100DayEMA'] = prices['Close'].ewm(span = 100).mean()
     if prices['20DayEMA'].iloc[len(prices) - 1] > prices['100DayEMA'].iloc[len(prices) - 1]:
-        return(5)
+        return(3)
     else:
-        return(2)
+        return(1)
 
 #stocksdf = pd.DataFrame(columns=['Ticker', 'Technical Action', 'Score'])
 portfolio = pd.DataFrame()
@@ -120,13 +120,13 @@ for x in sectors:
         
     stocksdf = stocksdf.sort_values(by=['Score'], ascending=False)
     buys = stocksdf[stocksdf['Technical Action'] == 'Buy']
-    buys = buys.head(num)
-    portfolio = pd.concat([portfolio, buys])
+    #buys = buys.head(num)
+    portfolio = pd.concat([portfolio, buys.head(num)])
 
     stocksdf.to_csv(path + '/results/' + x + '-action.csv')
     buys.to_csv(path + '/results/' + x + '-buys.csv')
 
-portfolio.to_csv(path + '/results/portfolio.csv')  
+portfolio.to_csv(path + '/results/mainportfolio.csv')  
     
 
 
