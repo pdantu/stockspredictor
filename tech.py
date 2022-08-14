@@ -37,6 +37,7 @@ def rsi(df, periods = 14, ema = True):
 
 def getScore(etf, stock, columns):
     metricdf = pd.read_csv(path + '/metrics/' + etf + '-metrics.csv')
+    metricdf = metricdf.fillna(0)
     factordict = {'Beta': -1 ,'Dividend Yield': 1, 'Forward P/E' : -1,'Trailing P/E': -1, 'Market Cap': 1, 'Trailing EPS': 1, 'Forward EPS': 1, 'PEG Ratio': -1, 'Price To Book': -1, 'E/V to EBITDA': -1, 'Free Cash Flow': 1, 'Deb To Equity': -1 ,'Earnings Growth': 1,'Ebitda margins': 1,'Quick Ratio': 1,'Target Mean Price': 1,'Return on Equity': 1 ,'Revenue Growth': 1,'Current Ratio': 1,'Current Price': 1}
     #print(metricdf.columns)
     subdf = metricdf[columns]
@@ -62,9 +63,9 @@ def getETFaction(etf):
     prices['20DayEMA'] = prices['Close'].ewm(span = 20).mean()
     prices['100DayEMA'] = prices['Close'].ewm(span = 100).mean()
     if prices['20DayEMA'].iloc[len(prices) - 1] > prices['100DayEMA'].iloc[len(prices) - 1]:
-        return(2)
+        return(5)
     else:
-        return(3)
+        return(2)
 
 #stocksdf = pd.DataFrame(columns=['Ticker', 'Technical Action', 'Score'])
 portfolio = pd.DataFrame()
