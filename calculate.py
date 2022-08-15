@@ -23,7 +23,7 @@ path = os.getcwd()
 
 def main(): 
     f_list = loop(path)  
-    #calcResults(path,f_list)
+    calcResults(path,f_list)
     sendEmail(path)
     '''df = pd.read_csv('{0}/results/portfolio.csv'.format(path))
     df.sort_values(by='weight',inplace=True,ascending=False)
