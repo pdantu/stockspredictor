@@ -28,7 +28,7 @@ def main():
 def sendEmail(path):
     sender_address = 'StocksPredictor123@outlook.com'
     sender_pass = 'Steelers2022!'
-    fileToSend = '{0}/results/mainportfolio.csv'.format(path)
+    fileToSend = '{0}/results/portfolio.csv'.format(path)
     receiver_addresses = ['pdantu1234@gmail.com','archisdhar@gmail.com']
 
     #Setup the MIME
