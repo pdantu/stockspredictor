@@ -6,6 +6,7 @@ import os
 import math
 path = os.getcwd()
 print(path)
+path = path[0:path.find("/extraPyFiles")]
 
 spy = pd.read_csv(path + '/holdings/SPY-holdings.csv')
 

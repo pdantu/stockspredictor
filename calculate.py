@@ -1,4 +1,6 @@
+from cgitb import strong
 from distutils.text_file import TextFile
+from operator import attrgetter
 import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 from fileinput import filename
@@ -20,17 +22,20 @@ import math
 path = os.getcwd()
 
 def main(): 
-    #f_list = loop(path)  
+    f_list = loop(path)  
     #calcResults(path,f_list)
     sendEmail(path)
+    '''df = pd.read_csv('{0}/results/portfolio.csv'.format(path))
+    df.sort_values(by='weight',inplace=True,ascending=False)
+    df.to_csv('{0}/results/portfolio.csv'.format(path))'''
 
 
 def sendEmail(path):
     sender_address = 'StocksPredictor123@outlook.com'
     sender_pass = 'Steelers2022!'
-    fileToSend = '{0}/results/portfolio.csv'.format(path)
+    #fileToSend = '{0}/results/portfolio.csv'.format(path)
     receiver_addresses = ['pdantu1234@gmail.com','archisdhar@gmail.com']
-
+    attachments = ['{0}/results/portfolio.csv'.format(path),'{0}/results/sector_weights.csv'.format(path)]
     #Setup the MIME
     message = MIMEMultipart()
     message['From'] = sender_address
@@ -39,33 +44,40 @@ def sendEmail(path):
     #The subject line
     #The body and the attachments for the mail
     mail_content = 'hey'
-    ctype, encoding = mimetypes.guess_type(fileToSend)
-    if ctype is None or encoding is not None:
-        ctype = "application/octet-stream"
+    
+    for fileToSend in attachments:
+        if '-' in fileToSend:
+            name = fileToSend[fileToSend.find('results/') + 8:fileToSend.find('-')]
+            name += '.csv'
+        else:
+            name = fileToSend[fileToSend.find('results/') + 8:]
+        ctype, encoding = mimetypes.guess_type(fileToSend)
+        if ctype is None or encoding is not None:
+            ctype = "application/octet-stream"
 
-    maintype, subtype = ctype.split("/", 1)
+        maintype, subtype = ctype.split("/", 1)
 
-    if maintype == "text":
-        fp = open(fileToSend)
-        # Note: we should handle calculating the charset
-        attachment = MIMEText(fp.read(), _subtype=subtype)
-        fp.close()
-    elif maintype == "image":
-        fp = open(fileToSend, "rb")
-        attachment = MIMEImage(fp.read(), _subtype=subtype)
-        fp.close()
-    elif maintype == "audio":
-        fp = open(fileToSend, "rb")
-        attachment = MIMEAudio(fp.read(), _subtype=subtype)
-        fp.close()
-    else:
-        fp = open(fileToSend, "rb")
-        attachment = MIMEBase(maintype, subtype)
-        attachment.set_payload(fp.read())
-        fp.close()
-        encoders.encode_base64(attachment)
-    attachment.add_header("Content-Disposition", "attachment", filename='Main Portfolio.csv')
-    message.attach(attachment)
+        if maintype == "text":
+            fp = open(fileToSend)
+            # Note: we should handle calculating the charset
+            attachment = MIMEText(fp.read(), _subtype=subtype)
+            fp.close()
+        elif maintype == "image":
+            fp = open(fileToSend, "rb")
+            attachment = MIMEImage(fp.read(), _subtype=subtype)
+            fp.close()
+        elif maintype == "audio":
+            fp = open(fileToSend, "rb")
+            attachment = MIMEAudio(fp.read(), _subtype=subtype)
+            fp.close()
+        else:
+            fp = open(fileToSend, "rb")
+            attachment = MIMEBase(maintype, subtype)
+            attachment.set_payload(fp.read())
+            fp.close()
+            encoders.encode_base64(attachment)
+        attachment.add_header("Content-Disposition", "attachment", filename=name)
+        message.attach(attachment)
 
     server = smtplib.SMTP("smtp-mail.outlook.com",587)
     server.starttls()
@@ -84,8 +96,12 @@ def calcResults(path,f_list):
         print('Processing: ', name)
         d_list = process(d_list,df,name)
 
-    newDF = pd.concat(d_list)
-    newDF.to_csv('{0}/results/portfolio.csv'.format(path))
+    portfolio = pd.concat(d_list)
+    scoresum = portfolio['Score'].sum()
+    portfolio['weight'] = (portfolio['Score'] / scoresum) * 100
+    portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
+    portfolio.sort_values(by='weight')
+    portfolio.to_csv('{0}/results/portfolio.csv'.format(path))
 
 def find_csv_filenames( path_to_dir, suffix=".csv" ):
     filenames = listdir(path_to_dir)
@@ -151,9 +167,13 @@ def process(d_list,df,sector):
     buys = stocksdf[stocksdf['Technical Action'] == 'Buy']
     stocksdf.to_csv(path + '/results/' + sector + '-action.csv')
     buys.to_csv(path + '/results/' + sector + '-buys.csv')
-
-    tempDf = buys.head(etfFraction)
-    d_list.append(tempDf)
+    if (sector == 'QQQ' or sector =='SPY'):
+        return d_list
+    strongbuys = buys[buys['Score'] > 0]
+    x = buys[buys['Score'] > 70]
+    if x.shape[0] > 3:
+        etfFraction = x.shape[0]
+    d_list.append(strongbuys.head(etfFraction))
 
     return d_list
 
@@ -236,6 +256,15 @@ def getScore(etf, stock, sharpe, columns):
     score += sharpe * 10
     return(score)
     
+    
+def createGraphic(path):
+    portfolio = pd.read_csv('{0}/results/portfolio.csv'.format(path))
+    filenames = loop(path,False)
+    print(filenames)
+    df2 = portfolio.groupby(['ETF'])['weight'].sum().reset_index()
+    
+    df2.sort_values(by='weight')
+    df2.to_csv('{0}/results/sector_weights.csv'.format(path))
 
 
 if __name__ == "__main__":
