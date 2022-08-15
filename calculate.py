@@ -22,9 +22,10 @@ import math
 path = os.getcwd()
 
 def main(): 
-    f_list = loop(path)  
-    calcResults(path,f_list)
-    sendEmail(path)
+    f_list = loop(path,False)  
+    #calcResults(path,f_list)
+    #sendEmail(path)
+    createGraphic(path)
     '''df = pd.read_csv('{0}/results/portfolio.csv'.format(path))
     df.sort_values(by='weight',inplace=True,ascending=False)
     df.to_csv('{0}/results/portfolio.csv'.format(path))'''
@@ -107,8 +108,11 @@ def find_csv_filenames( path_to_dir, suffix=".csv" ):
     filenames = listdir(path_to_dir)
     return [ filename for filename in filenames if filename.endswith( suffix ) ]
 
-def loop(path):
-    path += "/metrics"
+def loop(path,results):
+    if results:
+        path += "results"
+    else:
+        path += "/metrics"
     filenames = find_csv_filenames(path)
     return filenames
 
@@ -263,7 +267,9 @@ def createGraphic(path):
     print(filenames)
     df2 = portfolio.groupby(['ETF'])['weight'].sum().reset_index()
     
-    df2.sort_values(by='weight')
+    df2.sort_values(by='weight',inplace=True,ascending=False)
+    df2 = df2.round(2)
+    df2 = df2.reset_index()
     df2.to_csv('{0}/results/sector_weights.csv'.format(path))
 
 
