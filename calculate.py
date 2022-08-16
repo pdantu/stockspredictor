@@ -19,6 +19,7 @@ from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 import math
+from datetime import date
 path = os.getcwd()
 
 def main(): 
@@ -26,9 +27,12 @@ def main():
     #calcResults(path,f_list)
     #sendEmail(path)
     #createGraphic(path)
-    #df = pd.read_csv('{0}/results/portfolio.csv'.format(path))
-    #df.sort_values(by='weight',inplace=True,ascending=False)
-    #df.to_csv('{0}/results/portfolio.csv'.format(path))
+    
+    df = pd.read_csv('{0}/results/portfolio.csv'.format(path))
+   # df.sort_values(by='weight',inplace=True,ascending=False)
+   # df.to_csv('{0}/results/portfolio.csv'.format(path))
+   
+    writePortfolioToLogs(path,df)
 
 
 def sendEmail(path):
@@ -41,7 +45,7 @@ def sendEmail(path):
     message = MIMEMultipart()
     message['From'] = sender_address
     message['To'] = 'list@stockspredictor'
-    message['Subject'] = 'CSV attachment of portfolio'
+    message['Subject'] = 'Portfolio after {0} trading hours'.format(date.today())
     #The subject line
     #The body and the attachments for the mail
     mail_content = 'hey'
@@ -101,7 +105,7 @@ def calcResults(path,f_list):
     scoresum = portfolio['Score'].sum()
     portfolio['weight'] = (portfolio['Score'] / scoresum) * 100
     portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
-    portfolio.sort_values(by='weight',inplace=True)
+    portfolio.sort_values(by='weight',inplace=True,ascending=False)
     portfolio.to_csv('{0}/results/portfolio.csv'.format(path))
 
 def find_csv_filenames( path_to_dir, suffix=".csv" ):
@@ -272,6 +276,11 @@ def createGraphic(path):
     df2 = df2.reset_index()
     df2.to_csv('{0}/results/sector_weights.csv'.format(path))
 
+def writePortfolioToLogs(path,portfolio):
+    dat = date.today()
+    dat = str(dat)
+    filename = dat + '_portfolio.csv'
+    portfolio.to_csv('{0}/logs/{1}'.format(path,filename))
 
 if __name__ == "__main__":
     main()

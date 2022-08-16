@@ -22,8 +22,9 @@ from email.mime.text import MIMEText
 path = os.getcwd()
 
 def main():
+    path = os.getcwd()
     path = path[0:path.find("/extraPyFiles")]
-    #rankAll(path)
+    rankAll(path)
     #createGraphic(path)
     #sendEmail(path)
     print('hi')
