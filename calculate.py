@@ -267,5 +267,6 @@ def createGraphic(path):
     df2.to_csv('{0}/results/sector_weights.csv'.format(path))
 
 
+
 if __name__ == "__main__":
     main()
