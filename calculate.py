@@ -25,10 +25,10 @@ def main():
     f_list = loop(path,False)  
     #calcResults(path,f_list)
     #sendEmail(path)
-    createGraphic(path)
-    '''df = pd.read_csv('{0}/results/portfolio.csv'.format(path))
-    df.sort_values(by='weight',inplace=True,ascending=False)
-    df.to_csv('{0}/results/portfolio.csv'.format(path))'''
+    #createGraphic(path)
+    #df = pd.read_csv('{0}/results/portfolio.csv'.format(path))
+    #df.sort_values(by='weight',inplace=True,ascending=False)
+    #df.to_csv('{0}/results/portfolio.csv'.format(path))
 
 
 def sendEmail(path):
@@ -101,7 +101,7 @@ def calcResults(path,f_list):
     scoresum = portfolio['Score'].sum()
     portfolio['weight'] = (portfolio['Score'] / scoresum) * 100
     portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
-    portfolio.sort_values(by='weight')
+    portfolio.sort_values(by='weight',inplace=True)
     portfolio.to_csv('{0}/results/portfolio.csv'.format(path))
 
 def find_csv_filenames( path_to_dir, suffix=".csv" ):
