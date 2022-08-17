@@ -25,14 +25,17 @@ path = os.getcwd()
 def main(): 
     f_list = loop(path,False)  
     #calcResults(path,f_list)
-    #sendEmail(path)
-    #createGraphic(path)
     
-    df = pd.read_csv('{0}/results/portfolio.csv'.format(path))
+    #createGraphic(path)
+    #writePortfolioToLogs(path,df)
+    #findDifference()
+    #sendEmail(path)
+    
+    #df = pd.read_csv('{0}/portfolio/portfolio.csv'.format(path))
    # df.sort_values(by='weight',inplace=True,ascending=False)
    # df.to_csv('{0}/results/portfolio.csv'.format(path))
    
-    writePortfolioToLogs(path,df)
+    #writePortfolioToLogs(path,df)
 
 
 def sendEmail(path):
@@ -106,7 +109,7 @@ def calcResults(path,f_list):
     portfolio['weight'] = (portfolio['Score'] / scoresum) * 100
     portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
     portfolio.sort_values(by='weight',inplace=True,ascending=False)
-    portfolio.to_csv('{0}/results/portfolio.csv'.format(path))
+    portfolio.to_csv('{0}/portfolio/portfolio.csv'.format(path))
 
 def find_csv_filenames( path_to_dir, suffix=".csv" ):
     filenames = listdir(path_to_dir)
@@ -281,6 +284,32 @@ def writePortfolioToLogs(path,portfolio):
     dat = str(dat)
     filename = dat + '_portfolio.csv'
     portfolio.to_csv('{0}/logs/{1}'.format(path,filename))
+    
+    
+def findDifference(df1,df2):
+    df1 = pd.read_csv(df1)
+    df2 = pd.read_csv(df2)
+    series1 = df1['Ticker']
+    series2 = df2['Ticker']
+    
+    union = pd.Series(np.union1d(series1, series2))
+  
+    # intersection of the series
+    intersect = pd.Series(np.intersect1d(series1, series2))
+    
+    # uncommon elements in both the series 
+    notcommonseries = union[~union.isin(intersect)]
+    
+    print(notcommonseries)
+    x = list(notcommonseries)
+    
+    print(x)
+    buys = df2.loc[df2['Ticker'].isin(x)]
+    print(buys.head())
+    sells = df1.loc[df1['Ticker'].isin(x)]
+    sells['Technical Action'] = 'Sell'
+    final_df = pd.concat([buys,sells])
+    final_df.to_csv('{0}/portfolio/actions.csv'.format(path),index=False)
 
 if __name__ == "__main__":
     main()

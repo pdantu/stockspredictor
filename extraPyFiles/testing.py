@@ -1,5 +1,5 @@
 from distutils.text_file import TextFile
-from operator import attrgetter
+from operator import attrgetter, index
 from venv import create
 import warnings
 warnings.simplefilter(action='ignore', category=Warning)
@@ -24,10 +24,12 @@ path = os.getcwd()
 def main():
     path = os.getcwd()
     path = path[0:path.find("/extraPyFiles")]
-    rankAll(path)
+    #rankAll(path)
     #createGraphic(path)
-    #sendEmail(path)
-    print('hi')
+    sendEmail(path)
+    #print('hi')
+    
+    findDifference('{0}/logs/2022-08-15_portfolio.csv'.format(path), '{0}/results/portfolio.csv'.format(path))
 
 def loop(path,results):
     if results:
@@ -42,7 +44,7 @@ def sendEmail(path):
     sender_pass = 'Steelers2022!'
     #fileToSend = '{0}/results/portfolio.csv'.format(path)
     receiver_addresses = ['pdantu1234@gmail.com','archisdhar@gmail.com']
-    attachments = ['show.csv','{0}/results/portfolio.csv'.format(path),'diff.csv']
+    attachments = ['{0}/extraPyFiles/difference.csv'.format(path)]
     #Setup the MIME
     message = MIMEMultipart()
     message['From'] = sender_address
@@ -132,6 +134,34 @@ def rankAll(path):
     newdf = rankings[rankings['Ticker'].isin(temp3)]
     newdf.to_csv('diff.csv')
 
-
+def findDifference(df1,df2):
+    df1 = pd.read_csv(df1)
+    df2 = pd.read_csv(df2)
+    series1 = df1['Ticker']
+    series2 = df2['Ticker']
+    
+    union = pd.Series(np.union1d(series1, series2))
+  
+    # intersection of the series
+    intersect = pd.Series(np.intersect1d(series1, series2))
+    
+    # uncommon elements in both the series 
+    notcommonseries = union[~union.isin(intersect)]
+    
+    print(notcommonseries)
+    x = list(notcommonseries)
+    
+    
+    
+    print(x)
+    buys = df2.loc[df2['Ticker'].isin(x)]
+    print(buys.head())
+    sells = df1.loc[df1['Ticker'].isin(x)]
+    sells['Technical Action'] = 'Sell'
+    final_df = pd.concat([buys,sells])
+    final_df.to_csv('difference.csv',index=False)
+    
 if __name__ == "__main__":
     main()
+    
+    
