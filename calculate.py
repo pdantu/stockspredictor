@@ -40,7 +40,7 @@ def main():
 
 def sendEmail(path):
     sender_address = 'StocksPredictor123@outlook.com'
-    sender_pass = 'Steelers2022!'
+    sender_pass = ''
     #fileToSend = '{0}/results/portfolio.csv'.format(path)
     receiver_addresses = ['pdantu1234@gmail.com','archisdhar@gmail.com']
     attachments = ['{0}/results/portfolio.csv'.format(path),'{0}/results/sector_weights.csv'.format(path)]
