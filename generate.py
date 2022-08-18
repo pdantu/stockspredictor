@@ -6,12 +6,11 @@ import yfinance as yf
 import csv
 import os
 path = os.getcwd()
-sectorETF = ['XLK','XLF','XLU','XLI','XLE','XLV','XLP','XLY','XLC','XLRE','XLB','XLC','SPY','QQQ']
+sectorETF = ['XLK','XLF','XLU','XLI','XLE','XLV','XLP','XLY','XLC','XLRE','XLB','XLC']
 
 def main():
     print(path)
-    print('hello')
-    addOne('SPY')
+    runAll()
 
 def runAll():
     stocks = preprocessAll(sectorETF)

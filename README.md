@@ -11,7 +11,7 @@ how calculate.py works:
 then the for loop (for name in f_list) --> goes through each csv.. for each csv it reads it in as pandas df
                                        --> for each df it calls process 
 
-process(df) --> this is the function where u should add ur code for a single ETF. the etf's metrics are in the df. 
+process(df) --> this is the function where u should add code for a single ETF. the etf's metrics are in the df. 
 
 
 

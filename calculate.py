@@ -19,20 +19,28 @@ from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 import math
+from datetime import date
 path = os.getcwd()
 
 def main(): 
-    f_list = loop(path)  
-    calcResults(path,f_list)
-    sendEmail(path)
-    '''df = pd.read_csv('{0}/results/portfolio.csv'.format(path))
-    df.sort_values(by='weight',inplace=True,ascending=False)
-    df.to_csv('{0}/results/portfolio.csv'.format(path))'''
+    f_list = loop(path,False)  
+    #calcResults(path,f_list)
+    
+    #createGraphic(path)
+    #writePortfolioToLogs(path,df)
+    #findDifference()
+    #sendEmail(path)
+    
+    #df = pd.read_csv('{0}/portfolio/portfolio.csv'.format(path))
+   # df.sort_values(by='weight',inplace=True,ascending=False)
+   # df.to_csv('{0}/results/portfolio.csv'.format(path))
+   
+    #writePortfolioToLogs(path,df)
 
 
 def sendEmail(path):
     sender_address = 'StocksPredictor123@outlook.com'
-    sender_pass = 'Steelers2022!'
+    sender_pass = ''
     #fileToSend = '{0}/results/portfolio.csv'.format(path)
     receiver_addresses = ['pdantu1234@gmail.com','archisdhar@gmail.com']
     attachments = ['{0}/results/portfolio.csv'.format(path),'{0}/results/sector_weights.csv'.format(path)]
@@ -40,7 +48,7 @@ def sendEmail(path):
     message = MIMEMultipart()
     message['From'] = sender_address
     message['To'] = 'list@stockspredictor'
-    message['Subject'] = 'CSV attachment of portfolio'
+    message['Subject'] = 'Portfolio after {0} trading hours'.format(date.today())
     #The subject line
     #The body and the attachments for the mail
     mail_content = 'hey'
@@ -100,15 +108,18 @@ def calcResults(path,f_list):
     scoresum = portfolio['Score'].sum()
     portfolio['weight'] = (portfolio['Score'] / scoresum) * 100
     portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
-    portfolio.sort_values(by='weight')
-    portfolio.to_csv('{0}/results/portfolio.csv'.format(path))
+    portfolio.sort_values(by='weight',inplace=True,ascending=False)
+    portfolio.to_csv('{0}/portfolio/portfolio.csv'.format(path))
 
 def find_csv_filenames( path_to_dir, suffix=".csv" ):
     filenames = listdir(path_to_dir)
     return [ filename for filename in filenames if filename.endswith( suffix ) ]
 
-def loop(path):
-    path += "/metrics"
+def loop(path,results):
+    if results:
+        path += "results"
+    else:
+        path += "/metrics"
     filenames = find_csv_filenames(path)
     return filenames
 
@@ -263,9 +274,42 @@ def createGraphic(path):
     print(filenames)
     df2 = portfolio.groupby(['ETF'])['weight'].sum().reset_index()
     
-    df2.sort_values(by='weight')
+    df2.sort_values(by='weight',inplace=True,ascending=False)
+    df2 = df2.round(2)
+    df2 = df2.reset_index()
     df2.to_csv('{0}/results/sector_weights.csv'.format(path))
 
+def writePortfolioToLogs(path,portfolio):
+    dat = date.today()
+    dat = str(dat)
+    filename = dat + '_portfolio.csv'
+    portfolio.to_csv('{0}/logs/{1}'.format(path,filename))
+    
+    
+def findDifference(df1,df2):
+    df1 = pd.read_csv(df1)
+    df2 = pd.read_csv(df2)
+    series1 = df1['Ticker']
+    series2 = df2['Ticker']
+    
+    union = pd.Series(np.union1d(series1, series2))
+  
+    # intersection of the series
+    intersect = pd.Series(np.intersect1d(series1, series2))
+    
+    # uncommon elements in both the series 
+    notcommonseries = union[~union.isin(intersect)]
+    
+    print(notcommonseries)
+    x = list(notcommonseries)
+    
+    print(x)
+    buys = df2.loc[df2['Ticker'].isin(x)]
+    print(buys.head())
+    sells = df1.loc[df1['Ticker'].isin(x)]
+    sells['Technical Action'] = 'Sell'
+    final_df = pd.concat([buys,sells])
+    final_df.to_csv('{0}/portfolio/actions.csv'.format(path),index=False)
 
 
 if __name__ == "__main__":
