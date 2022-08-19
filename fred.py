@@ -9,9 +9,10 @@ path = os.getcwd()
 fred = Fred(api_key='13f1e0b5cbdcb8307bbf7bbca9852e4a')
 
 def main():
-    getData({'GDP': 'GDP', 'UNrate': 'UnemploymentRate', 'GDPC1': 'RealGDP', 'SP500': 'MarketPrice'})
-    df = pd.read_csv(path + '/macroecondata/GDP.csv')
-    getPredictionGDP(df)
+    #getData({'GDP': 'GDP', 'UNrate': 'UnemploymentRate', 'GDPC1': 'RealGDP', 'SP500': 'MarketPrice'})
+    #df = pd.read_csv(path + '/macroecondata/GDP.csv')
+    #getPredictionGDP(df)
+    getSpySectorWeights()
 def getData(values):
     for x in values:
         data = fred.get_series_latest_release(x)
@@ -33,6 +34,22 @@ def getPredictionGDP(data):
     #print(model_fit.summary())
     #data['forecast']=model_fit.predict(start=90,end=103,dynamic=True)
     print(y_pred_out.tail())
+def getSpySectorWeights():
+    a = yf.Ticker('SPY')
+    vals = a.stats()['topHoldings']['sectorWeightings']
+    df = pd.DataFrame(columns=['sector', 'weight'])
+    for x in vals:
+        for y in x:
+            df.loc[len(df.index)] = [y, x[y]]
+    
+    df.to_csv(path + '/holdings/spysectorweights.csv')
 
+def setWeight(df):
+    portfolio = pd.read_csv(path + '/results/mainportfolio.csv')
+            
+    #df = pd.DataFrame(a.stats()['topHoldings']['sectorWeightings'].items(), columns=['Sector', 'Weight'])
+    #df = pd.DataFrame.from_dict(a.stats()['topHoldings']['sectorWeightings'], orient='index')
+    #df = df.reset_index()
+    #print(df.head())
 if __name__ == "__main__":
     main()

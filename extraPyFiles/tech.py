@@ -8,7 +8,7 @@ path = os.getcwd()
 print(path)
 path = path[0:path.find("/extraPyFiles")]
 
-spy = pd.read_csv(path + '/holdings/SPY-holdings.csv')
+#spy = pd.read_csv(path + '/holdings/SPY-holdings.csv')
 
 
 sectors = ['XLE', 'XLK', 'XLC', 'XLB', 'XLY', 'XLU', 'XLI', 'XLP', 'XLRE', 'XLF', 'XLV']
@@ -126,10 +126,10 @@ for x in sectors:
         else:
             z -= 1
         
-        if prices['MACD'].iloc[len(prices) - 1] > prices['MACD Signal'].iloc[len(prices) - 1]:
+        """if prices['MACD'].iloc[len(prices) - 1] > prices['MACD Signal'].iloc[len(prices) - 1]:
             z += 1
         else:
-            z -= 1
+            z -= 1"""
         prices['RSI'] = rsi(prices)
   
         for k in prices['RSI'].tail(10):
@@ -138,7 +138,7 @@ for x in sectors:
         
         sc = getScore(x, y, sharpe, {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1})
         
-        if z == 2:
+        if z == 1:
             stocksdf.loc[len(stocksdf.index)] = [x, y, 'Buy', sc]
         else: 
             stocksdf.loc[len(stocksdf.index)] = [x, y, 'Sell', sc]
@@ -148,15 +148,20 @@ for x in sectors:
     buys = stocksdf[stocksdf['Technical Action'] == 'Buy']
     #buys = buys.head(num)
     strongbuys = buys[buys['Score'] > 0]
-    portfolio = pd.concat([portfolio, strongbuys.head(num)])
+    x = buys[buys['Score'] > 70]
+    etfFraction = num
+    if x.shape[0] > 3:
+        etfFraction = x.shape[0]
+    #d_list.append(strongbuys.head(etfFraction))
+    portfolio = pd.concat([portfolio, strongbuys.head(etfFraction)])
 
-    stocksdf.to_csv(path + '/results/' + x + '-action.csv')
-    buys.to_csv(path + '/results/' + x + '-buys.csv')
+    stocksdf.to_csv(path + '/results/' + x + '-actionTest.csv')
+    buys.to_csv(path + '/results/' + x + '-buysTest.csv')
 
-scoresum = portfolio['Score'].sum()
+"""scoresum = portfolio['Score'].sum()
 portfolio['weight'] = (portfolio['Score'] / scoresum) * 100
-portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
-portfolio.to_csv(path + '/results/mainportfolio.csv')  
+portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000"""
+portfolio.to_csv(path + '/results/mainportfolioTest.csv')  
     
 
 
