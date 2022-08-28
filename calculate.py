@@ -23,27 +23,22 @@ from datetime import date
 path = os.getcwd()
 
 def main(): 
-    f_list = loop(path,False)  
+    f_list = loop(path,False)
     #calcResults(path,f_list)
-    
-    #createGraphic(path)
+    #df = pd.read_csv('{0}/portfolio/portfolio.csv'.format(path))  
     #writePortfolioToLogs(path,df)
-    #findDifference()
-    #sendEmail(path)
-    
-    #df = pd.read_csv('{0}/portfolio/portfolio.csv'.format(path))
-   # df.sort_values(by='weight',inplace=True,ascending=False)
-   # df.to_csv('{0}/results/portfolio.csv'.format(path))
-   
-    #writePortfolioToLogs(path,df)
+    #findDifference('{0}/logs/2022-08-18_portfolio.csv'.format(path),'{0}/portfolio/portfolio.csv'.format(path))
+    sendEmail(path)
+    #getSentiment(f_list)
+
 
 
 def sendEmail(path):
     sender_address = 'StocksPredictor123@outlook.com'
-    sender_pass = ''
+    sender_pass = input("Email Pasword: ") #TODO -------------------------------------------------> ADD PASSWORD
     #fileToSend = '{0}/results/portfolio.csv'.format(path)
     receiver_addresses = ['pdantu1234@gmail.com','archisdhar@gmail.com']
-    attachments = ['{0}/results/portfolio.csv'.format(path),'{0}/results/sector_weights.csv'.format(path)]
+    attachments = ['{0}/portfolio/portfolio.csv'.format(path),'{0}/portfolio/sector_weights.csv'.format(path),'{0}/portfolio/actions.csv'.format(path)]
     #Setup the MIME
     message = MIMEMultipart()
     message['From'] = sender_address
@@ -55,10 +50,10 @@ def sendEmail(path):
     
     for fileToSend in attachments:
         if '-' in fileToSend:
-            name = fileToSend[fileToSend.find('results/') + 8:fileToSend.find('-')]
+            name = fileToSend[fileToSend.find('portfolio/') + 10:fileToSend.find('-')]
             name += '.csv'
         else:
-            name = fileToSend[fileToSend.find('results/') + 8:]
+            name = fileToSend[fileToSend.find('portfolio/') + 10:]
         ctype, encoding = mimetypes.guess_type(fileToSend)
         if ctype is None or encoding is not None:
             ctype = "application/octet-stream"
@@ -100,6 +95,8 @@ def sendEmail(path):
 def calcResults(path,f_list):
     d_list = []
     for name in f_list:
+        if name == 'SPY' or name =='QQQ':
+            continue
         df = pd.read_csv('{0}/metrics/{1}'.format(path,name))
         print('Processing: ', name)
         d_list = process(d_list,df,name)
@@ -110,6 +107,7 @@ def calcResults(path,f_list):
     portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
     portfolio.sort_values(by='weight',inplace=True,ascending=False)
     portfolio.to_csv('{0}/portfolio/portfolio.csv'.format(path))
+    createGraphic(path)
 
 def find_csv_filenames( path_to_dir, suffix=".csv" ):
     filenames = listdir(path_to_dir)
@@ -157,19 +155,22 @@ def process(d_list,df,sector):
         else:
             measure -= 1
         
+        '''
         if prices['MACD'].iloc[len(prices) - 1] > prices['MACD Signal'].iloc[len(prices) - 1]:
             measure += 1
         else:
             measure -= 1
+        '''
+        
         
         prices['RSI'] = rsi(prices)
   
         for k in prices['RSI'].tail(10):
-            if k > 70:
+            if k > 100:
                 measure -= 1
         
         sc = getScore(sector, symbol, sharpe, {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1})
-        if measure == 2:
+        if measure == 1:
             stocksdf.loc[len(stocksdf.index)] = [sector, symbol, 'Buy', sc]
         else: 
             stocksdf.loc[len(stocksdf.index)] = [sector, symbol, 'Sell', sc]
@@ -269,7 +270,7 @@ def getScore(etf, stock, sharpe, columns):
     
     
 def createGraphic(path):
-    portfolio = pd.read_csv('{0}/results/portfolio.csv'.format(path))
+    portfolio = pd.read_csv('{0}/portfolio/portfolio.csv'.format(path))
     filenames = loop(path,False)
     print(filenames)
     df2 = portfolio.groupby(['ETF'])['weight'].sum().reset_index()
@@ -277,7 +278,7 @@ def createGraphic(path):
     df2.sort_values(by='weight',inplace=True,ascending=False)
     df2 = df2.round(2)
     df2 = df2.reset_index()
-    df2.to_csv('{0}/results/sector_weights.csv'.format(path))
+    df2.to_csv('{0}/portfolio/sector_weights.csv'.format(path))
 
 def writePortfolioToLogs(path,portfolio):
     dat = date.today()
@@ -286,12 +287,13 @@ def writePortfolioToLogs(path,portfolio):
     portfolio.to_csv('{0}/logs/{1}'.format(path,filename))
     
     
-def findDifference(df1,df2):
-    df1 = pd.read_csv(df1)
-    df2 = pd.read_csv(df2)
+def findDifference(x,y):
+    df1 = pd.read_csv(x)
+    df2 = pd.read_csv(y)
     series1 = df1['Ticker']
     series2 = df2['Ticker']
     
+    print(df2.head())
     union = pd.Series(np.union1d(series1, series2))
   
     # intersection of the series
@@ -300,16 +302,29 @@ def findDifference(df1,df2):
     # uncommon elements in both the series 
     notcommonseries = union[~union.isin(intersect)]
     
-    print(notcommonseries)
+    #print(notcommonseries)
     x = list(notcommonseries)
     
-    print(x)
+    #print(x)
     buys = df2.loc[df2['Ticker'].isin(x)]
-    print(buys.head())
+    #print(buys.head())
     sells = df1.loc[df1['Ticker'].isin(x)]
     sells['Technical Action'] = 'Sell'
     final_df = pd.concat([buys,sells])
     final_df.to_csv('{0}/portfolio/actions.csv'.format(path),index=False)
+
+def getSentiment(f_list):
+    x = open('news.txt','w')
+    for sector in f_list:
+        sector = sector[:sector.find("-")]
+        news = yf.Ticker(sector).news
+        print(news)
+        print(type(news))
+        print(news[0])
+        break
+
+
+
 
 if __name__ == "__main__":
     main()
