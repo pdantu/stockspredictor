@@ -12,7 +12,8 @@ def main():
     #getData({'GDP': 'GDP', 'UNrate': 'UnemploymentRate', 'GDPC1': 'RealGDP', 'SP500': 'MarketPrice'})
     #df = pd.read_csv(path + '/macroecondata/GDP.csv')
     #getPredictionGDP(df)
-    getSpySectorWeights()
+    #getSpySectorWeights()
+    mergeData()
 def getData(values):
     for x in values:
         data = fred.get_series_latest_release(x)
@@ -21,6 +22,20 @@ def getData(values):
         data.to_csv(path + '/macroecondata/' + values[x] + '.csv')
 #categories = ['UNrate', 'GDP', 'SP500','CPALTT01USM657N' , FPCPITOTLZGUSA (inflation), GDPC1 (real gdp), IMPGSC1 (real imports of goods), NETEXC (real exports), DGDSRX1Q020SBEA (personal consumption of goods), CORESTICKM159SFRBATL (CPI), DFF (Fed rate hikes), UMCSENT (consumer sentiment), RSXFS (retail sales), PPIACO (Producer price index), RECPROUSM156N (smoothed US rececssion probability)]
 
+def mergeData():
+    a = yf.Ticker('SPY')
+    spy = a.history('max')
+    spy = spy.reset_index()
+    #print(type(spy['Date'].iloc[0]))
+    gdp = pd.read_csv(path + '/macroecondata/GDP.csv')
+    realgdp = pd.read_csv(path + '/macroecondata/RealGDP.csv')
+    realgdp['Date'] = pd.to_datetime(realgdp['Date'])
+    
+    #print(type(realgdp['Date'].iloc[0]))
+    unemploymentrate = pd.read_csv(path + '/macroecondata/UnemploymentRate.csv')
+
+    finaldf = spy.merge(realgdp, how='inner', on='Date')
+    print(finaldf.head())
 
 def getPredictionGDP(data):
     data = data.dropna()
@@ -46,7 +61,7 @@ def getSpySectorWeights():
 
 def setWeight(df):
     portfolio = pd.read_csv(path + '/results/mainportfolio.csv')
-            
+
     #df = pd.DataFrame(a.stats()['topHoldings']['sectorWeightings'].items(), columns=['Sector', 'Weight'])
     #df = pd.DataFrame.from_dict(a.stats()['topHoldings']['sectorWeightings'], orient='index')
     #df = df.reset_index()

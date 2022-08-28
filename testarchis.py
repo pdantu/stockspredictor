@@ -312,6 +312,8 @@ def findDifference(x,y):
     sells['Technical Action'] = 'Sell'
     final_df = pd.concat([buys,sells])
     final_df.to_csv('{0}/portfolio/actions.csv'.format(path),index=False)
+
+
 def getSentiment(f_list):
     x = open('news.txt','w')
     for sector in f_list:
@@ -321,6 +323,8 @@ def getSentiment(f_list):
         print(type(news))
         print(news[0])
         break
+
+
 
 
 
