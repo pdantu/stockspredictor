@@ -108,18 +108,21 @@ def calcResults(path,f_list):
     for index, row in sector.iterrows():
         subdf = portfolio[portfolio['ETF'] == row['ETF']]
         sums = subdf['Market Cap'].sum()
-        capdict[row['ETF']] = (row['weight'] * 100) / sums
+        capdict[row['ETF']] = (row['weight'] * 100)
     """scoresum = portfolio['Score'].sum()
     portfolio['weight'] = (portfolio['Score'] / scoresum) * 100
     portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000"""
     weights = []
+    df2 = portfolio.groupby('ETF')['Score'].sum().reset_index()
     for index, row in portfolio.iterrows():
-        weights.append(row['Market Cap'] * capdict.get(row['ETF']))
+        fd = df2[df2['ETF'] == row['ETF']]
+        v = fd['Score'].iloc[0]
+        weights.append((row['Score'] / v) * capdict.get(row['ETF']))
     portfolio['weight'] = weights
     portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
     portfolio.sort_values(by='weight',inplace=True,ascending=False)
     portfolio.reset_index()
-    portfolio.to_csv('{0}/portfolio/portfolio.csv'.format(path))
+    portfolio.to_csv('{0}/portfolio/portfoliotest.csv'.format(path))
     #portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
     
     createGraphic(path)
