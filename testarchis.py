@@ -39,7 +39,7 @@ def sendEmail(path):
     sender_pass = input("Email Pasword: ") #TODO -------------------------------------------------> ADD PASSWORD
     #fileToSend = '{0}/results/portfolio.csv'.format(path)
     receiver_addresses = ['pdantu1234@gmail.com','archisdhar@gmail.com']
-    attachments = ['{0}/portfolio/portfolio.csv'.format(path),'{0}/portfolio/sector_weights.csv'.format(path),'{0}/portfolio/actions.csv'.format(path)]
+    attachments = ['{0}/portfolio/portfoliotest.csv'.format(path),'{0}/portfolio/sector_weights.csv'.format(path),'{0}/portfolio/actions.csv'.format(path)]
     #Setup the MIME
     message = MIMEMultipart()
     message['From'] = sender_address
@@ -230,7 +230,7 @@ def getETFaction(etf):
     if prices['20DayEMA'].iloc[len(prices) - 1] > prices['100DayEMA'].iloc[len(prices) - 1]:
         return(3)
     else:
-        return(1)
+        return(0)
 
 def rsi(df, periods = 14, ema = True):
     """
