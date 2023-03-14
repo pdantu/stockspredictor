@@ -1,6 +1,7 @@
 from cgitb import strong
 from distutils.text_file import TextFile
 from operator import attrgetter
+from ssl import PROTOCOL_TLS_SERVER
 import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 from fileinput import filename
@@ -24,7 +25,7 @@ path = os.getcwd()
 
 def main(): 
     f_list = loop(path,False)
-    #calcResults(path,f_list)
+    calcResults(path,f_list)
     #df = pd.read_csv('{0}/portfolio/portfolio.csv'.format(path))  
     #writePortfolioToLogs(path,df)
     #findDifference('{0}/logs/2022-08-18_portfolio.csv'.format(path),'{0}/portfolio/portfolio.csv'.format(path))
@@ -38,7 +39,7 @@ def sendEmail(path):
     sender_pass = input("Email Pasword: ") #TODO -------------------------------------------------> ADD PASSWORD
     #fileToSend = '{0}/results/portfolio.csv'.format(path)
     receiver_addresses = ['pdantu1234@gmail.com','archisdhar@gmail.com']
-    attachments = ['{0}/portfolio/portfolio.csv'.format(path),'{0}/portfolio/sector_weights.csv'.format(path),'{0}/portfolio/actions.csv'.format(path)]
+    attachments = ['{0}/portfolio/portfoliotest.csv'.format(path),'{0}/portfolio/sector_weights.csv'.format(path),'{0}/portfolio/actions.csv'.format(path)]
     #Setup the MIME
     message = MIMEMultipart()
     message['From'] = sender_address
@@ -95,18 +96,35 @@ def sendEmail(path):
 def calcResults(path,f_list):
     d_list = []
     for name in f_list:
-        if name == 'SPY' or name =='QQQ':
+        if name == 'SPY-metrics.csv' or name =='QQQ-metrics.csv':
             continue
         df = pd.read_csv('{0}/metrics/{1}'.format(path,name))
         print('Processing: ', name)
         d_list = process(d_list,df,name)
 
     portfolio = pd.concat(d_list)
-    scoresum = portfolio['Score'].sum()
+    sector = pd.read_csv(path + '/holdings/spysectorweights.csv')
+    capdict = {}
+    for index, row in sector.iterrows():
+        subdf = portfolio[portfolio['ETF'] == row['ETF']]
+        sums = subdf['Market Cap'].sum()
+        capdict[row['ETF']] = (row['weight'] * 100)
+    """scoresum = portfolio['Score'].sum()
     portfolio['weight'] = (portfolio['Score'] / scoresum) * 100
+    portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000"""
+    weights = []
+    df2 = portfolio.groupby('ETF')['Score'].sum().reset_index()
+    for index, row in portfolio.iterrows():
+        fd = df2[df2['ETF'] == row['ETF']]
+        v = fd['Score'].iloc[0]
+        weights.append((row['Score'] / v) * capdict.get(row['ETF']))
+    portfolio['weight'] = weights
     portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
     portfolio.sort_values(by='weight',inplace=True,ascending=False)
-    portfolio.to_csv('{0}/portfolio/portfolio.csv'.format(path))
+    portfolio.reset_index()
+    portfolio.to_csv('{0}/portfolio/portfoliotest.csv'.format(path))
+    #portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
+    
     createGraphic(path)
 
 def find_csv_filenames( path_to_dir, suffix=".csv" ):
@@ -126,7 +144,7 @@ def process(d_list,df,sector):
     sector = sector[:sector.find("-")]
     #print(df.head())
     etfFraction = getETFaction(sector) #get the etf fraction of the sector
-    stocksdf = pd.DataFrame(columns=['ETF', 'Ticker', 'Technical Action', 'Score'])
+    stocksdf = pd.DataFrame(columns=['ETF', 'Ticker', 'Technical Action', 'Score', 'Market Cap'])
     for symbol in df['Unnamed: 0']:
         if symbol == 'Other':
             continue
@@ -169,11 +187,11 @@ def process(d_list,df,sector):
             if k > 100:
                 measure -= 1
         
-        sc = getScore(sector, symbol, sharpe, {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1})
+        sc, cap = getScore(sector, symbol, sharpe, {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1})
         if measure == 1:
-            stocksdf.loc[len(stocksdf.index)] = [sector, symbol, 'Buy', sc]
+            stocksdf.loc[len(stocksdf.index)] = [sector, symbol, 'Buy', sc, cap]
         else: 
-            stocksdf.loc[len(stocksdf.index)] = [sector, symbol, 'Sell', sc]
+            stocksdf.loc[len(stocksdf.index)] = [sector, symbol, 'Sell', sc, cap]
 
     stocksdf = stocksdf.sort_values(by=['Score'], ascending=False)
     buys = stocksdf[stocksdf['Technical Action'] == 'Buy']
@@ -182,7 +200,7 @@ def process(d_list,df,sector):
     if (sector == 'QQQ' or sector =='SPY'):
         return d_list
     strongbuys = buys[buys['Score'] > 0]
-    x = buys[buys['Score'] > 70]
+    x = buys[buys['Score'] > 150]
     if x.shape[0] > 3:
         etfFraction = x.shape[0]
     d_list.append(strongbuys.head(etfFraction))
@@ -212,7 +230,7 @@ def getETFaction(etf):
     if prices['20DayEMA'].iloc[len(prices) - 1] > prices['100DayEMA'].iloc[len(prices) - 1]:
         return(3)
     else:
-        return(1)
+        return(0)
 
 def rsi(df, periods = 14, ema = True):
     """
@@ -250,6 +268,7 @@ def getScore(etf, stock, sharpe, columns):
     metricdf.rename(columns={metricdf.columns[0]:"Symbol"}, inplace=True)
     #print(metricdf['Symbol'].head())
     tickerrow = metricdf[metricdf['Symbol'] == stock]
+    marketcap = tickerrow['Market Cap'].iloc[0]
     for x in columns.keys():
 
         mean = metricdf[x].mean()
@@ -266,7 +285,7 @@ def getScore(etf, stock, sharpe, columns):
         a = val / mean
         score += a
     score += sharpe * 10
-    return(score)
+    return(score, marketcap)
     
     
 def createGraphic(path):
@@ -312,6 +331,8 @@ def findDifference(x,y):
     sells['Technical Action'] = 'Sell'
     final_df = pd.concat([buys,sells])
     final_df.to_csv('{0}/portfolio/actions.csv'.format(path),index=False)
+
+
 def getSentiment(f_list):
     x = open('news.txt','w')
     for sector in f_list:
@@ -321,6 +342,8 @@ def getSentiment(f_list):
         print(type(news))
         print(news[0])
         break
+
+
 
 
 
