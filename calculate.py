@@ -24,9 +24,9 @@ path = os.getcwd()
 
 def main(): 
     f_list = loop(path,False)
-    #calcResults(path,f_list)
+    # calcResults(path,f_list)
     df = pd.read_csv('{0}/portfolio/portfolio.csv'.format(path))  
-    writePortfolioToLogs(path,df)
+    # writePortfolioToLogs(path,df)
     #findDifference('{0}/logs/2022-08-18_portfolio.csv'.format(path),'{0}/portfolio/portfolio.csv'.format(path))
     sendEmail(path)
     #getSentiment(f_list)
@@ -241,7 +241,7 @@ def rsi(df, periods = 14, ema = True):
 
 def getScore(etf, stock, sharpe, columns):
     metricdf = pd.read_csv(path + '/metrics/' + etf + '-metrics.csv')
-    metricdf = metricdf.fillna(0)
+    # metricdf = metricdf.fillna(0)
     factordict = {'Beta': -1 ,'Dividend Yield': 1, 'Forward P/E' : -1,'Trailing P/E': -1, 'Market Cap': 1, 'Trailing EPS': 1, 'Forward EPS': 1, 'PEG Ratio': -1, 'Price To Book': -1, 'E/V to EBITDA': -1, 'Free Cash Flow': 1, 'Deb To Equity': -1 ,'Earnings Growth': 1,'Ebitda margins': 1,'Quick Ratio': 1,'Target Mean Price': 1,'Return on Equity': 1 ,'Revenue Growth': 1,'Current Ratio': 1,'Current Price': 1}
     #print(metricdf.columns)
     subdf = metricdf[columns]
@@ -250,6 +250,9 @@ def getScore(etf, stock, sharpe, columns):
     metricdf.rename(columns={metricdf.columns[0]:"Symbol"}, inplace=True)
     #print(metricdf['Symbol'].head())
     tickerrow = metricdf[metricdf['Symbol'] == stock]
+    tickerrow = tickerrow.fillna(0)
+    # if etf == "XLV":
+    #     print(stock)
     for x in columns.keys():
 
         mean = metricdf[x].mean()
@@ -260,11 +263,15 @@ def getScore(etf, stock, sharpe, columns):
             val = val / sd
             val = val * factordict.get(x) * columns.get(x)
         else:
-            val = val - mean
+            val = mean - val
             val = val / sd
             val = val * factordict.get(x) * columns.get(x)
-        a = val / mean
-        score += a
+        # a = val / mean
+        # if etf == "XLV":
+        #     print(x)
+        #     print(val)
+            # print(a)
+        score += val
     score += sharpe * 10
     return(score)
     
