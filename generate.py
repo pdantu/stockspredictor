@@ -5,12 +5,15 @@ import json
 import yfinance as yf
 import csv
 import os
+from yahooquery import Ticker
+from yahooquery.utils import _convert_to_timestamp, _flatten_list, _history_dataframe
 path = os.getcwd()
 sectorETF = ['XLK','XLF','XLU','XLI','XLE','XLV','XLP','XLY','XLC','XLRE','XLB','XLC']
 
 def main():
     print(path)
     runAll()
+    
 
 def runAll():
     stocks = preprocessAll(sectorETF)
@@ -39,7 +42,7 @@ def preprocessAll(etflist):   ## modify this to read from csv and get the hodlin
     stocks = {}
     for etf in etflist:
         df = pd.read_csv('{0}/holdings/{1}-holdings.csv'.format(path,etf))
-        df = df[(df['Symbol'] != 'SSIX') & (df['Symbol'] != 'Other')]
+        df = df[(df['Symbol'] != 'SSIXX') & (df['Symbol'] != 'Other') & (df['Symbol'] != 'NLOK')]
         x = df['Symbol']
         symbols = x.to_numpy()
         symbols = list(symbols)
@@ -53,7 +56,7 @@ def preprocessAll(etflist):   ## modify this to read from csv and get the hodlin
 def preprocessOne(etf):
     stocks = {}
     df = pd.read_csv('{0}/holdings/{1}-holdings.csv'.format(path,etf))
-    df = df[(df['Symbol'] != 'SSIX') & (df['Symbol'] != 'Other')]
+    df = df[(df['Symbol'] != 'SSIXX') & (df['Symbol'] != 'Other')]
     x = df['Symbol']
     symbols = x.to_numpy()
     symbols = list(symbols)
@@ -78,76 +81,85 @@ def getSectData(sector,stock_list): #singlesectorDict
 
 def singleStockData(stock):
     answer = {}
-    ticker = yf.Ticker(stock).stats()
-    finance = ticker.get('financialData')
-    summary = ticker.get('summaryDetail')
-    default = ticker.get('defaultKeyStatistics')
-     
-    if summary:
-        beta = summary.get('beta')
-        answer['Beta'] = beta
+    #a = Ticker('AAPL', asynchronous=True)
+    ticker = Ticker(stock, asynchronous=True)
+    summary = ticker.summary_detail[stock]
+    default = ticker.key_stats[stock]
+    finance = ticker.financial_data[stock]
+    #print(default)
+    if summary: # use summary_detail method
+        try:
+            beta = summary.get('beta')
+            answer['Beta'] = beta   # good
 
-        divY = summary.get('dividendYield')
-        answer['Dividend Yield'] = divY
+            divY = summary.get('dividendYield')
+            answer['Dividend Yield'] = divY  # good
 
-        forwardPE = summary.get('forwardPE')
-        answer['Forward P/E'] = forwardPE
+            forwardPE = summary.get('forwardPE')
+            answer['Forward P/E'] = forwardPE # good
 
-        trailingPE = summary.get('trailingPE')
-        answer['Trailing P/E'] = trailingPE
+            trailingPE = summary.get('trailingPE')
+            answer['Trailing P/E'] = trailingPE # good
 
-        marketCap = summary.get('marketCap')
-        answer['Market Cap'] = marketCap
-
-    
-    if default:
-        trailingEPS = default.get('trailingEps')
-        answer['Trailing EPS'] = trailingEPS
-
-        forwardEPS = default.get('forwardEps')
-        answer['Forward EPS'] = forwardEPS
-
-        pegRatio = default.get('pegRatio')
-        answer['PEG Ratio'] = pegRatio
-
-        priceToBook = default.get('priceToBook')
-        answer['Price To Book'] = priceToBook
-
-        evtoeb = default.get('enterpriseToEbitda')
-        answer['E/V to EBITDA'] = evtoeb
+            marketCap = summary.get('marketCap')
+            answer['Market Cap'] = marketCap # 
+        except Exception as e: 
+            print(stock)
 
     
-    if finance:
-        freeCashFlow = finance.get('freeCashflow')
-        answer['Free Cash Flow'] = freeCashFlow
+    if default: # use key_stats method
+        try:
+            trailingEPS = default.get('trailingEps')
+            answer['Trailing EPS'] = trailingEPS 
 
-        debtToEquity = finance.get('debtToEquity')
-        answer['Deb To Equity'] = debtToEquity
+            forwardEPS = default.get('forwardEps')
+            answer['Forward EPS'] = forwardEPS
 
-        earningsGrowth = finance.get('earningsGrowth')
-        answer["Earnings Growth"] = earningsGrowth
+            pegRatio = default.get('pegRatio')
+            answer['PEG Ratio'] = pegRatio
 
-        ebitdaMargins = finance.get('ebitdaMargins')
-        answer['Ebitda margins'] = ebitdaMargins
+            priceToBook = default.get('priceToBook')
+            answer['Price To Book'] = priceToBook
 
-        quickRatio = finance.get('quickRatio')
-        answer['Quick Ratio'] = quickRatio
+            evtoeb = default.get('enterpriseToEbitda')
+            answer['E/V to EBITDA'] = evtoeb
+        except Exception as e: 
+            print(stock)
 
-        targetMeanPrice = finance.get('targetMeanPrice')
-        answer['Target Mean Price'] = targetMeanPrice
+    
+    if finance:  #get from financial_data
+        try:
+            freeCashFlow = finance.get('freeCashflow')
+            answer['Free Cash Flow'] = freeCashFlow
 
-        returnOnEquity = finance.get('returnOnEquity')
-        answer['Return on Equity'] = returnOnEquity
+            debtToEquity = finance.get('debtToEquity')
+            answer['Deb To Equity'] = debtToEquity
 
-        revenueGrowth = finance.get('revenueGrowth')
-        answer['Revenue Growth'] = revenueGrowth
+            earningsGrowth = finance.get('earningsGrowth')
+            answer["Earnings Growth"] = earningsGrowth
 
-        currentRatio = finance.get('currentRatio')
-        answer["Current Ratio"] = currentRatio
+            ebitdaMargins = finance.get('ebitdaMargins')
+            answer['Ebitda margins'] = ebitdaMargins
 
-        currentPrice = finance.get('currentPrice')
-        answer['Current Price'] = currentPrice
+            quickRatio = finance.get('quickRatio')
+            answer['Quick Ratio'] = quickRatio
 
+            targetMeanPrice = finance.get('targetMeanPrice')
+            answer['Target Mean Price'] = targetMeanPrice
+
+            returnOnEquity = finance.get('returnOnEquity')
+            answer['Return on Equity'] = returnOnEquity
+
+            revenueGrowth = finance.get('revenueGrowth')
+            answer['Revenue Growth'] = revenueGrowth
+
+            currentRatio = finance.get('currentRatio')
+            answer["Current Ratio"] = currentRatio
+
+            currentPrice = finance.get('currentPrice')
+            answer['Current Price'] = currentPrice
+        except:
+            print(stock)
 
     return answer
 

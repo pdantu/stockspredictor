@@ -63,12 +63,10 @@
         "NTAP",
         "AKAM",
         "TRMB",
-        "SSIXX",
         "STX",
         "TYL",
         "PAYC",
         "WDC",
-        "NLOK",
         "JKHY",
         "CTXS",
         "PTC",
@@ -141,7 +139,6 @@
         "CMA",
         "AIZ",
         "GL",
-        "SSIXX",
         "ZION",
         "LNC",
         "BEN",
@@ -176,8 +173,7 @@
         "AES",
         "NI",
         "NRG",
-        "PNW",
-        "SSIXX"
+        "PNW"
     ],
     "XLI": [
         "RTX",
@@ -251,7 +247,6 @@
         "PNR",
         "AOS",
         "ALK",
-        "SSIXX",
         "SPGI"
     ],
     "XLE": [
@@ -275,8 +270,7 @@
         "CTRA",
         "FANG",
         "MRO",
-        "APA",
-        "SSIXX"
+        "APA"
     ],
     "XLV": [
         "UNH",
@@ -340,7 +334,6 @@
         "CRL",
         "BIO",
         "OGN",
-        "SSIXX",
         "XRAY",
         "UHS",
         "DVA"
@@ -378,8 +371,7 @@
         "BF.B",
         "TAP",
         "LW",
-        "CPB",
-        "SSIXX"
+        "CPB"
     ],
     "XLY": [
         "AMZN",
@@ -439,7 +431,6 @@
         "PENN",
         "NCLH",
         "RL",
-        "SSIXX",
         "PVH"
     ],
     "XLC": [
@@ -468,8 +459,7 @@
         "NWSA",
         "FOX",
         "DISH",
-        "NWS",
-        "SSIXX"
+        "NWS"
     ],
     "XLRE": [
         "AMT",
@@ -502,8 +492,7 @@
         "HST",
         "REG",
         "FRT",
-        "VNO",
-        "SSIXX"
+        "VNO"
     ],
     "XLB": [
         "LIN",
@@ -533,7 +522,6 @@
         "CE",
         "EMN",
         "WRK",
-        "SEE",
-        "SSIXX"
+        "SEE"
     ]
 }

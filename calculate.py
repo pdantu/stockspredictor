@@ -25,8 +25,8 @@ path = os.getcwd()
 def main(): 
     f_list = loop(path,False)
     #calcResults(path,f_list)
-    #df = pd.read_csv('{0}/portfolio/portfolio.csv'.format(path))  
-    #writePortfolioToLogs(path,df)
+    df = pd.read_csv('{0}/portfolio/portfolio.csv'.format(path))  
+    writePortfolioToLogs(path,df)
     #findDifference('{0}/logs/2022-08-18_portfolio.csv'.format(path),'{0}/portfolio/portfolio.csv'.format(path))
     sendEmail(path)
     #getSentiment(f_list)
@@ -95,7 +95,7 @@ def sendEmail(path):
 def calcResults(path,f_list):
     d_list = []
     for name in f_list:
-        if name == 'SPY' or name =='QQQ':
+        if 'SPY' in name or 'QQQ' in name:
             continue
         df = pd.read_csv('{0}/metrics/{1}'.format(path,name))
         print('Processing: ', name)
