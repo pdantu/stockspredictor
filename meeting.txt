@@ -1,0 +1,42 @@
+
+
+
+
+stock Market -- ETF's 
+
+
+ETFs - indicators of how the market is doing
+
+SPY, QQQ, 
+1. SPY
+2. XLK tech
+3. XLC communication services 
+4. XLE energy 
+5. XLF financial
+6. XLB materials
+7. XLRE real estate 
+8. XLI industrial
+9. XLY consumer discretionary
+10. XLP consumer staples
+11. Xlv  health care
+12. Xlu  utilities 
+
+
+
+
+XLK -- 55 stocks, 
+
+
+14 market indicators: eval function,  
+
+
+loop through all the stocks in the sector: 
+   find eval function for each stock 
+   compare score with mean
+
+
+
+
+
+Allow users to customize weightage of the different indicators. 
+Also have preset weightages (high risk high reward, low risk)
