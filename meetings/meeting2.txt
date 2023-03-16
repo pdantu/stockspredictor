@@ -1,0 +1,75 @@
+Generate:
+5 types of Investing
+
+Growth
+- Higher weights (weight of 2 or 3)
+    - Revenue growth
+    - Earnings growth
+    - Return on equity
+    - Forward P/E
+    - Forward EPS
+    - PEG ratio
+
+Value
+- Higher Weights 
+    - Trailing P/E (maybe forward P/E too)
+    - Price to Book ratio
+    - Dividend Yield
+    - E/V to Ebitda
+    - Free cash flow
+    - Beta
+
+Income
+- Higher Weights
+    - Dividend yield
+    - Forward EPS/ trailing EPS
+    - Debt to equity ratio
+    - Free cash flow
+
+Momentum
+- Higher Weights
+    - RSI
+    - P/E ratio
+
+Contrarian
+- Uses sentiment analysis
+
+
+
+website requirements: 
+
+--- Login System
+--- Overall UI/design layout 
+--- User can see previous portfolio 
+--- User can see newly generated portfolio 
+--- User can change of portfolio: ---Anish---
+        symbol| price you bought | curr price | Arrow 
+--- Users can customize their investment decisions  -------ABHI--------
+     -- 3 preset portfolios (Growth, Value, Income)
+     -- complete custom portfolio
+
+
+--- database stuff: 
+    -- figure out how to store the csv files 
+    -- figure out how to store user data
+
+    -- Tables:
+        - Users
+        - Preset Portfolio 
+            - Type | Date | store csv as a string | | | |
+        - Users Portfolios
+            - Date | User | Type (Custom or preset) | Portfolio Name | Weights | store csv as a string |
+        - 
+        - 
+
+
+
+### convert string to csv
+my_string = '''a,b,c
+1,2,3
+9,8,7'''
+with open('my_file.csv', 'w') as out:
+    out.write(my_string)
+
+convert csv to string: 
+https://blog.finxter.com/python-convert-csv-to-text-file-csv-to-txt/#:~:text=To%20convert%20a%20CSV%20to,with%20the%20empty%20string%20'%20'%20.
