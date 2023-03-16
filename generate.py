@@ -2,7 +2,6 @@ from asyncio.base_subprocess import ReadSubprocessPipeProto
 import pandas as pd
 import numpy as np
 import json
-import yfinance as yf
 import csv
 import os
 from yahooquery import Ticker
