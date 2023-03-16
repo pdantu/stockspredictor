@@ -24,9 +24,11 @@ path = os.getcwd()
 
 def main(): 
     f_list = loop(path,False)
-    # calcResults(path,f_list)
-    df = pd.read_csv('{0}/portfolio/portfolio.csv'.format(path))  
-    # writePortfolioToLogs(path,df)
+    types = ['growth', 'value', 'income']
+    # for x in types:
+    #     calcResults(path,f_list, x)
+    #     df = pd.read_csv('{0}/portfolio/portfolio{1}.csv'.format(path, x))  
+    #     writePortfolioToLogs(path,df)
     #findDifference('{0}/logs/2022-08-18_portfolio.csv'.format(path),'{0}/portfolio/portfolio.csv'.format(path))
     sendEmail(path)
     #getSentiment(f_list)
@@ -38,7 +40,8 @@ def sendEmail(path):
     sender_pass = input("Email Pasword: ") #TODO -------------------------------------------------> ADD PASSWORD
     #fileToSend = '{0}/results/portfolio.csv'.format(path)
     receiver_addresses = ['pdantu1234@gmail.com', 'archisdhar@gmail.com', 'abhilash.gogineni@gmail.com', 'anish.t2023@gmail.com']
-    attachments = ['{0}/portfolio/portfolio.csv'.format(path),'{0}/portfolio/sector_weights.csv'.format(path),'{0}/portfolio/actions.csv'.format(path)]
+    # attachments = ['{0}/portfolio/portfolio.csv'.format(path),'{0}/portfolio/sector_weights.csv'.format(path),'{0}/portfolio/actions.csv'.format(path)]
+    attachments = ['{0}/portfolio/portfoliogrowth.csv'.format(path),'{0}/portfolio/portfoliovalue.csv'.format(path),'{0}/portfolio/portfolioincome.csv'.format(path)]
     #Setup the MIME
     message = MIMEMultipart()
     message['From'] = sender_address
@@ -92,21 +95,21 @@ def sendEmail(path):
 
 
 
-def calcResults(path,f_list):
+def calcResults(path,f_list,type):
     d_list = []
     for name in f_list:
         if 'SPY' in name or 'QQQ' in name:
             continue
         df = pd.read_csv('{0}/metrics/{1}'.format(path,name))
         print('Processing: ', name)
-        d_list = process(d_list,df,name)
+        d_list = process(d_list,df,name, type)
 
     portfolio = pd.concat(d_list)
     scoresum = portfolio['Score'].sum()
     portfolio['weight'] = (portfolio['Score'] / scoresum) * 100
     portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
     portfolio.sort_values(by='weight',inplace=True,ascending=False)
-    portfolio.to_csv('{0}/portfolio/portfolio.csv'.format(path))
+    portfolio.to_csv('{0}/portfolio/portfolio{1}.csv'.format(path, type))
     createGraphic(path)
 
 def find_csv_filenames( path_to_dir, suffix=".csv" ):
@@ -122,7 +125,7 @@ def loop(path,results):
     return filenames
 
 
-def process(d_list,df,sector):
+def process(d_list,df,sector, type):
     sector = sector[:sector.find("-")]
     #print(df.head())
     etfFraction = getETFaction(sector) #get the etf fraction of the sector
@@ -168,8 +171,15 @@ def process(d_list,df,sector):
         for k in prices['RSI'].tail(10):
             if k > 100:
                 measure -= 1
+        if type == 'growth':
+            weightdict = {'Forward EPS': 3, 'Forward P/E': 3, 'PEG Ratio': 3, 'Market Cap': 1, 'Price To Book': 1, 'Return on Equity': 3, 'Free Cash Flow': 1, 'Revenue Growth': 3, 'Dividend Yield': 1, 'Deb To Equity': 1, 'Earnings Growth': 3}
+        elif type == 'value':
+            weightdict = {'Trailing P/E': 3, 'Forward P/E': 3, 'PEG Ratio': 1, 'Market Cap': 1, 'Price To Book': 3, 'Return on Equity': 1, 'Free Cash Flow': 3, 'Revenue Growth': 1, 'Dividend Yield': 3, 'Deb To Equity': 1, 'E/V to EBITDA': 3, 'Beta': 3}
+        elif type == 'income':
+            weightdict = {'Forward EPS': 3, 'Forward P/E': 1, 'PEG Ratio': 1, 'Market Cap': 1, 'Price To Book': 1, 'Return on Equity': 1, 'Free Cash Flow': 3, 'Revenue Growth': 1, 'Dividend Yield': 3, 'Deb To Equity': 3, 'Trailing EPS': 3}
+        # {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1}
         
-        sc = getScore(sector, symbol, sharpe, {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1})
+        sc = getScore(sector, symbol, sharpe, weightdict)
         if measure == 1:
             stocksdf.loc[len(stocksdf.index)] = [sector, symbol, 'Buy', sc]
         else: 
