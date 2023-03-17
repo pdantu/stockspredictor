@@ -25,10 +25,10 @@ path = os.getcwd()
 def main(): 
     f_list = loop(path,False)
     types = ['growth', 'value', 'income']
-    # for x in types:
-    #     calcResults(path,f_list, x)
-    #     df = pd.read_csv('{0}/portfolio/portfolio{1}.csv'.format(path, x))  
-    #     writePortfolioToLogs(path,df)
+    for x in types:
+        calcResults(path,f_list, x)
+        df = pd.read_csv('{0}/portfolio/portfolio{1}.csv'.format(path, x))  
+        writePortfolioToLogs(path,df)
     #findDifference('{0}/logs/2022-08-18_portfolio.csv'.format(path),'{0}/portfolio/portfolio.csv'.format(path))
     sendEmail(path)
     #getSentiment(f_list)
@@ -282,7 +282,7 @@ def getScore(etf, stock, sharpe, columns):
         #     print(val)
             # print(a)
         score += val
-    score += sharpe * 10
+    score += sharpe * 2
     return(score)
     
     
