@@ -1,0 +1,26 @@
+<form action="/calculate" method="POST">
+    {%for metric in metrics%}
+        <input type="checkbox" name="metr" value="{{metric}}">
+        <label for="{{metric}}">{{metric}}</label>
+        <br>
+    {%endfor%}
+
+
+
+    Forward EPS: <input name = "weights" type="number"><br>
+    Forward P/E: <input name = "weights" type="number"><br>
+    PEG Ratio: <input name = "weights" type="number"><br>
+    Market Cap: <input name = "weights" type="number"><br>
+    Price To Book: <input name = "weights" type="number"><br>
+    Return on Equity: <input name = "weights" type="number"><br>
+    Free Cash Flow: <input name = "weights" type="number"><br>
+    Revenue Growth: <input name = "weights" type="number"><br>
+    Dividend Yield: <input name = "weights" type="number"><br>
+    Deb To Equity: <input name = "weights" type="number"><br>
+
+    
+    <button type="submit">Calculate!!!</button>
+
+
+
+</form>
