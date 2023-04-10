@@ -1,4 +1,20 @@
-<div class="loader"></div> 
+{% extends 'base_in.html' %}
+
+{% block head %}
+
+{% endblock %}
+
+{% block body %}
+
+<div class="mx-auto" style="width: 200px;">
+    <br>
+    <br>
+    <br>
+    <br>
+    <div class="loader"></div> 
+    <h3>Loading...</h3>
+    <p>This could take several minutes</p>
+</div>
 
 <style>
 .loader {
@@ -14,4 +30,16 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
-  </style>
+</style>
+
+<script>
+    fetch('/calculate')
+    .then(() => {
+        location.href = 'http://127.0.0.1:5000/viewPortfolio';
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+</script>
+
+{% endblock %}

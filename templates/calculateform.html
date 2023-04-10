@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+{% extends 'base_in.html' %}
 
 {% block head %}
 
@@ -35,7 +35,7 @@
 
 <div class="mx-auto" style="width: 200px;">
 
-    <div id="myDIV">
+    <form action= "{{ url_for('calcHelper')}}", method = "post">
 
             {%for metric in metrics%}
                 <input type="checkbox" name="metr" value="{{metric}}">
@@ -56,41 +56,8 @@
 
             <br>
 
-            <!-- <button type="button" class="btn btn-success">Create Portfolio</button> -->
-            <button onclick="myFunction()">Create Portfolio</button>
-            
-    </div>
-
-    <div id="myDIV2">
-        <br>
-        <br>
-        <br>
-        <br>
-        <div class="loader"></div> 
-        <h3>Loading...</h3>
-        <p>This could take several minutes</p>
-    </div>
-
+            <button type="submit" class="btn btn-success">Create Portfolio</button>       
+    </form>
 </div>
-
-
-
-<script>
-    function myFunction() {
-        var x = document.getElementById("myDIV");
-        if (x.style.display === "none") {
-            x.style.display = "block";
-        } else {
-            x.style.display = "none";
-        }
-
-        var y = document.getElementById("myDIV2");
-
-        y.style.display = "block";
-        
-
-        fetch('/calculate');
-    }
-    </script>
 
 {% endblock %}
