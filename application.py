@@ -9,7 +9,7 @@ application = Flask(__name__)
 
 @application.route('/',methods = ['POST','GET'])
 def index():
-    return '<form action = "/calculateform", method = "post"><button type="submit">Calculate</button></form>'
+    return render_template('index.html')
 
 @application.route('/calculateform',methods = ['POST', 'GET'])
 def calculateform():
@@ -19,6 +19,8 @@ def calculateform():
 
 @application.route('/calculate',methods=['POST', 'GET'])
 def calculatee():
+    print("CALCULATING...")
+
     calculatec = calculate.CalculateStocks()
 
     weightsdict = {'Forward EPS': int(request.form.getlist('weights')[0]), 'Forward P/E': int(request.form.getlist('weights')[1]), 'PEG Ratio': int(request.form.getlist('weights')[2]), 'Market Cap': int(request.form.getlist('weights')[3]), 'Price To Book': int(request.form.getlist('weights')[4]), 'Return on Equity': int(request.form.getlist('weights')[5]), 'Free Cash Flow': int(request.form.getlist('weights')[6]), 'Revenue Growth': int(request.form.getlist('weights')[7]), 'Dividend Yield': int(request.form.getlist('weights')[8]), 'Deb To Equity': int(request.form.getlist('weights')[9])}
@@ -31,12 +33,13 @@ def calculatee():
     df = pd.read_csv('{0}/portfolio/portfolio{1}.csv'.format(calculatec.path, 'custom'))
     # writePortfolioToLogs(path,df)
     # sendEmail(path)
-    z = df.to_html()
-    print (z)
-    return z
+    # z = df.to_html()
+    # print (z)
+    return df
 
-    return "Hi"
-
+@application.route('/test',methods=['POST', 'GET'])
+def test():
+    return render_template('test.html')
 
 if __name__ == '__main__':
     application.run(debug=True)
