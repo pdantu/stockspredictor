@@ -1,0 +1,53 @@
+{% extends 'base_in.html' %}
+
+{% block head %}
+
+{% endblock %}
+
+{% block body %}
+
+<style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    
+    td, th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #dddddd;
+    }
+</style>
+
+<div class="mx-auto" style="width: 600px;">
+    <br>
+    <br>
+    <br>
+    <h1>Your Portfolio</h1>
+    <br>
+    <br>
+    <br>
+
+    <table>
+        {% for i in range(rows) %}
+        <tr>
+          <th>{{port[i][1]}}</th>
+          <th>{{port[i][2]}}</th>
+          <th>{{port[i][3]}}</th>
+          <th>{{port[i][4]}}</th>
+          <th>{{port[i][5]}}</th>
+          <th>{{port[i][6]}}</th>
+        </tr>
+        {% endfor %}
+      </table>
+</div>
+
+
+
+
+
+{% endblock %}
