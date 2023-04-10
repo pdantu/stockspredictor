@@ -13,7 +13,7 @@ application.secret_key = 'the random string'
 def index():
     return render_template('index.html')
 
-@application.route('/calculateform',methods = ['POST', 'GET'])
+@application.route('/calculateform', methods = ['POST', 'GET'])
 def calculateform():
     filenames = listdir(os.getcwd() + '/metrics')
     metrics = [ filename for filename in filenames if filename.endswith('.csv')]
@@ -21,9 +21,9 @@ def calculateform():
     for i in range(len(metrics)):
         metrics[i] = metrics[i].replace('-metrics.csv', '')
 
-    return render_template('calculateform.html',metrics=metrics)
+    return render_template('chooseMetrics.html', metrics=metrics)
 
-@application.route('/calculate',methods=['POST', 'GET'])
+@application.route('/calculate', methods=['POST', 'GET'])
 def calculatee():
     print("CALCULATING...")
 
@@ -62,12 +62,18 @@ def calculatee():
 @application.route('/calcHelper',methods=['POST', 'GET'])
 def calcHelper():
     session['weightsdict'] = {'Forward EPS': int(request.form.getlist('weights')[0]), 'Forward P/E': int(request.form.getlist('weights')[1]), 'PEG Ratio': int(request.form.getlist('weights')[2]), 'Market Cap': int(request.form.getlist('weights')[3]), 'Price To Book': int(request.form.getlist('weights')[4]), 'Return on Equity': int(request.form.getlist('weights')[5]), 'Free Cash Flow': int(request.form.getlist('weights')[6]), 'Revenue Growth': int(request.form.getlist('weights')[7]), 'Dividend Yield': int(request.form.getlist('weights')[8]), 'Deb To Equity': int(request.form.getlist('weights')[9])}
-    session['metricswanted'] = request.form.getlist('metr')
+    # session['metricswanted'] = request.form.getlist('metr')
     return render_template('loading.html')
 
 @application.route('/viewPortfolio',methods=['POST', 'GET'])
 def viewPortfolio():
     return render_template('viewPortfolio.html', port = session['port'], rows = len(session['port']))
+
+@application.route('/saveMetrics', methods=['POST', 'GET'])
+def saveMetrics():
+    session['metricswanted'] = request.form.getlist('metr')
+    return render_template('chooseWeights.html')
+    
 
 if __name__ == '__main__':
     application.run(debug=True)
