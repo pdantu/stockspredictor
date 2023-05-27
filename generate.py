@@ -11,6 +11,7 @@ sectorETF = ['XLK','XLF','XLU','XLI','XLE','XLV','XLP','XLY','XLC','XLRE','XLB',
 
 def main():
     print(path)
+    # singleStockData('AAPL')
     runAll()
     
 
@@ -83,6 +84,7 @@ def singleStockData(stock):
     #a = Ticker('AAPL', asynchronous=True)
     ticker = Ticker(stock, asynchronous=True)
     summary = ticker.summary_detail[stock]
+    print(summary)
     default = ticker.key_stats[stock]
     finance = ticker.financial_data[stock]
     #print(default)
@@ -161,6 +163,8 @@ def singleStockData(stock):
             print(stock)
 
     return answer
+
+
 
 if __name__ == "__main__":
     main()
