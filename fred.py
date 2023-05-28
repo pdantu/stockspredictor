@@ -2,6 +2,8 @@ from fredapi import Fred
 import pandas as pd
 import yfinance as yf
 import os
+import matplotlib.pyplot as plt
+import numpy as np
 # pfrom statsmodels.tsa.arima_model import ARIMA
 
 path = os.getcwd()
@@ -12,11 +14,12 @@ def main():
     data = {'GDP': 'GDP', 'UNrate': 'UnemploymentRate', 'GDPC1': 'RealGDP', 'SP500': 'MarketPrice', 'DGDSRX1Q020SBEA': 'PersonalConsumption', 'IMPGSC1': 'Imports', 'NETEXC': 'Exports', 'DFF': 'FedRateHike', 'CORESTICKM159SFRBATL': 'CPI', 'UMCSENT': 'ConsumerSentiment'}
     # getData(data)
     # combineFredData(data)
-    #df = pd.read_csv(path + '/macroecondata/GDP.csv')
+    df = pd.read_csv(path + '/macroecondata/final.csv')
     #getPredictionGDP(df)
     # getSpySectorWeights()
     #mergeData()
-    calculateMarketScore()
+    # calculateMarketScore()
+    predict(df['GDP'])
  
 def getData(values):
     for x in values:
@@ -76,6 +79,95 @@ def applyRow(row, norm, cols, weights):
         val = val * weights[x]
         score += val
     return score
+
+def plots(col):
+    from statsmodels.graphics.tsaplots import plot_acf
+    from statsmodels.graphics.tsaplots import plot_pacf
+
+    # Assuming you have a pandas DataFrame called 'data' with a column named 'TimeSeriesData'
+    # Ensure the 'TimeSeriesData' column is in the appropriate format (e.g., numeric)
+
+    # Plot the PACF
+    fig, ax = plt.subplots(figsize=(10, 5))
+    plot_pacf(col, lags=20, ax=ax)  # Specify the number of lags to display
+    ax.set_xlabel('Lag')
+    ax.set_ylabel('Partial Autocorrelation')
+    ax.set_title('Partial Autocorrelation Function (PACF)')
+    plt.show()
+    # Assuming you have a pandas DataFrame called 'data' with a column named 'TimeSeriesData'
+    # Ensure the 'TimeSeriesData' column is in the appropriate format (e.g., numeric)
+
+    # Plot the ACF
+    # fig, ax = plt.subplots(figsize=(10, 5))
+    # plot_acf(col, lags=20, ax=ax)  # Specify the number of lags to display
+    # ax.set_xlabel('Lag')
+    # ax.set_ylabel('Autocorrelation')
+    # ax.set_title('Autocorrelation Function (ACF)')
+    # plt.show()
+
+def predict(col):
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import MinMaxScaler
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import LSTM, Dense
+    import matplotlib.pyplot as plt
+
+    # Assuming you have a pandas DataFrame called 'data' with a column named 'TimeSeriesData'
+    # Ensure the 'TimeSeriesData' column is in the appropriate format (e.g., numeric)
+
+    # Convert the time series data into a numpy array
+    col = col.dropna
+    data_array = col.values.reshape(-1, 1)
+
+    # Perform data normalization using Min-Max scaling
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaled_data = scaler.fit_transform(data_array)
+
+    # Split the data into training and testing sets
+    train_data, test_data = train_test_split(scaled_data, test_size=0.2, shuffle=False)
+
+    # Define the number of previous time steps to consider for each prediction
+    n_steps = 10
+
+    # Create input sequences and corresponding target values
+    def create_sequences(data, n_steps):
+        X = []
+        y = []
+        for i in range(n_steps, len(data)):
+            X.append(data[i - n_steps:i, 0])
+            y.append(data[i, 0])
+        return np.array(X), np.array(y)
+
+    train_X, train_y = create_sequences(train_data, n_steps)
+    test_X, test_y = create_sequences(test_data, n_steps)
+
+    # Reshape the input sequences to fit the LSTM input shape
+    train_X = np.reshape(train_X, (train_X.shape[0], train_X.shape[1], 1))
+    test_X = np.reshape(test_X, (test_X.shape[0], test_X.shape[1], 1))
+
+    # Build the LSTM model
+    model = Sequential()
+    model.add(LSTM(units=50, activation='relu', input_shape=(n_steps, 1)))
+    model.add(Dense(units=1))
+    model.compile(optimizer='adam', loss='mean_squared_error')
+
+    # Train the LSTM model
+    model.fit(train_X, train_y, epochs=10, batch_size=32)
+
+    # Make predictions on the test data
+    predictions = model.predict(test_X)
+
+    # Inverse transform the scaled predictions and actual values to their original scale
+    predictions = scaler.inverse_transform(predictions)
+    actual_values = scaler.inverse_transform(test_y.reshape(-1, 1))
+
+    # Plot the predicted values and actual values
+    plt.plot(predictions, label='Predicted')
+    plt.plot(actual_values, label='Actual')
+    plt.xlabel('Time')
+    plt.ylabel('Value')
+    plt.legend()
+    plt.show()
 
 def mergeData():
     a = yf.Ticker('SPY')

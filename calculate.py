@@ -25,6 +25,8 @@ from datetime import date
 class CalculateStocks:
 
     def main(self): 
+        # df = pd.read_csv('{0}/portfolio/portfoliogrowth.csv'.format(self.path))  
+        # self.addCompName(df, 'growth')
         f_list = self.loop(self.path,False)
         types = ['growth', 'value', 'income']
         for x in types:
@@ -35,7 +37,14 @@ class CalculateStocks:
         self.sendEmail(self.path)
         #getSentiment(f_list)
 
-
+    def addCompName(self, data, type):
+        names = []
+        for x in data['Ticker']:
+            a = yf.Ticker(x)
+            name = a.info['longName']
+            names.append(name)
+        data['Name'] = names
+        data.to_csv('{0}/portfolio/portfolio{1}.csv'.format(self.path, type))
 
     def sendEmail(self, path):
         sender_address = 'StocksPredictor123@outlook.com'

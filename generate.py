@@ -10,8 +10,9 @@ path = os.getcwd()
 sectorETF = ['XLK','XLF','XLU','XLI','XLE','XLV','XLP','XLY','XLC','XLRE','XLB','XLC']
 
 def main():
+    # print(1)
     print(path)
-    # singleStockData('AAPL')
+    # singleStoc$kData('AAPL')
     runAll()
     
 
@@ -84,7 +85,7 @@ def singleStockData(stock):
     #a = Ticker('AAPL', asynchronous=True)
     ticker = Ticker(stock, asynchronous=True)
     summary = ticker.summary_detail[stock]
-    print(summary)
+    # print(summary)
     default = ticker.key_stats[stock]
     finance = ticker.financial_data[stock]
     #print(default)
