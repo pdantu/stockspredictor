@@ -116,7 +116,7 @@ def predict(col):
     # Ensure the 'TimeSeriesData' column is in the appropriate format (e.g., numeric)
 
     # Convert the time series data into a numpy array
-    col = col.dropna
+    col = col.dropna()
     data_array = col.values.reshape(-1, 1)
 
     # Perform data normalization using Min-Max scaling
@@ -160,14 +160,15 @@ def predict(col):
     # Inverse transform the scaled predictions and actual values to their original scale
     predictions = scaler.inverse_transform(predictions)
     actual_values = scaler.inverse_transform(test_y.reshape(-1, 1))
-
+    print(test_X[-1])
     # Plot the predicted values and actual values
-    plt.plot(predictions, label='Predicted')
-    plt.plot(actual_values, label='Actual')
-    plt.xlabel('Time')
-    plt.ylabel('Value')
-    plt.legend()
-    plt.show()
+    # plt.plot(predictions, label='Predicted')
+    # plt.plot(actual_values, label='Actual')
+    # plt.xlabel('Time')
+    # plt.ylabel('Value')
+    # plt.legend()
+    # plt.show()
+    # return model
 
 def mergeData():
     a = yf.Ticker('SPY')

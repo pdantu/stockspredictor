@@ -25,16 +25,24 @@ from datetime import date
 class CalculateStocks:
 
     def main(self): 
-        # df = pd.read_csv('{0}/portfolio/portfoliogrowth.csv'.format(self.path))  
-        # self.addCompName(df, 'growth')
+        # df = pd.read_csv('{0}/portfolio/portfoliovalue.csv'.format(self.path))  
+        # self.addCompName(df, 'value')
+        # df = pd.read_csv('{0}/portfolio/portfolioincome.csv'.format(self.path))  
+        # self.addCompName(df, 'income')
         f_list = self.loop(self.path,False)
         types = ['growth', 'value', 'income']
         for x in types:
             self.calcResults(self.path,f_list, x)
             df = pd.read_csv('{0}/portfolio/portfolio{1}.csv'.format(self.path, x))  
             self.writePortfolioToLogs(self.path,df)
-        #findDifference('{0}/logs/2022-08-18_portfolio.csv'.format(path),'{0}/portfolio/portfolio.csv'.format(path))
-        self.sendEmail(self.path)
+        # #findDifference('{0}/logs/2022-08-18_portfolio.csv'.format(path),'{0}/portfolio/portfolio.csv'.format(path))
+        # self.sendEmail(self.path)
+        df = pd.read_csv('{0}/portfolio/portfoliovalue.csv'.format(self.path))  
+        self.addCompName(df, 'value')
+        df = pd.read_csv('{0}/portfolio/portfolioincome.csv'.format(self.path))  
+        self.addCompName(df, 'income')
+        df = pd.read_csv('{0}/portfolio/portfoliogrowth.csv'.format(self.path))  
+        self.addCompName(df, 'growth')
         #getSentiment(f_list)
 
     def addCompName(self, data, type):
