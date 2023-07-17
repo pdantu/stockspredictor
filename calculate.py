@@ -20,6 +20,8 @@ from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 import math
 from datetime import date
+import requests
+from bs4 import BeautifulSoup
 
 
 class CalculateStocks:
@@ -31,6 +33,7 @@ class CalculateStocks:
         # self.addCompName(df, 'income')
         f_list = self.loop(self.path,False)
         types = ['growth', 'value', 'income']
+        # types = ['growth']
         for x in types:
             self.calcResults(self.path,f_list, x)
             df = pd.read_csv('{0}/portfolio/portfolio{1}.csv'.format(self.path, x))  
@@ -44,6 +47,74 @@ class CalculateStocks:
         df = pd.read_csv('{0}/portfolio/portfoliogrowth.csv'.format(self.path))  
         self.addCompName(df, 'growth')
         #getSentiment(f_list)
+        self.sendEmail(self.path)
+        self.stockPrediction('AAPL')
+    def stockPrediction(self, stock):
+        s = yf.Ticker(stock)
+        from sklearn.model_selection import train_test_split
+        from sklearn.preprocessing import MinMaxScaler
+        from tensorflow.keras.models import Sequential
+        from tensorflow.keras.layers import LSTM, Dense
+        import matplotlib.pyplot as plt
+
+        # Assuming you have a pandas DataFrame called 'data' with a column named 'TimeSeriesData'
+        # Ensure the 'TimeSeriesData' column is in the appropriate format (e.g., numeric)
+
+        # Convert the time series data into a numpy array
+        col = s.history('max')
+        col = col['Close']
+        col = col.dropna()
+        data_array = col.values.reshape(-1, 1)
+
+        # Perform data normalization using Min-Max scaling
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaled_data = scaler.fit_transform(data_array)
+
+        # Split the data into training and testing sets
+        train_data, test_data = train_test_split(scaled_data, test_size=0.2, shuffle=False)
+
+        # Define the number of previous time steps to consider for each prediction
+        n_steps = 10
+
+        # Create input sequences and corresponding target values
+        def create_sequences(data, n_steps):
+            X = []
+            y = []
+            for i in range(n_steps, len(data)):
+                X.append(data[i - n_steps:i, 0])
+                y.append(data[i, 0])
+            return np.array(X), np.array(y)
+
+        train_X, train_y = create_sequences(train_data, n_steps)
+        test_X, test_y = create_sequences(test_data, n_steps)
+
+        # Reshape the input sequences to fit the LSTM input shape
+        train_X = np.reshape(train_X, (train_X.shape[0], train_X.shape[1], 1))
+        test_X = np.reshape(test_X, (test_X.shape[0], test_X.shape[1], 1))
+
+        # Build the LSTM model
+        model = Sequential()
+        model.add(LSTM(units=50, activation='relu', input_shape=(n_steps, 1)))
+        model.add(Dense(units=1))
+        model.compile(optimizer='adam', loss='mean_squared_error')
+
+        # Train the LSTM model
+        model.fit(train_X, train_y, epochs=10, batch_size=32)
+
+        # Make predictions on the test data
+        predictions = model.predict(test_X)
+
+        # Inverse transform the scaled predictions and actual values to their original scale
+        predictions = scaler.inverse_transform(predictions)
+        actual_values = scaler.inverse_transform(test_y.reshape(-1, 1))
+        print(test_X[-1])
+        # Plot the predicted values and actual values
+        plt.plot(predictions, label='Predicted')
+        plt.plot(actual_values, label='Actual')
+        plt.xlabel('Time')
+        plt.ylabel('Value')
+        plt.legend()
+        plt.show()
 
     def addCompName(self, data, type):
         names = []
@@ -199,6 +270,7 @@ class CalculateStocks:
             # {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1}
             
             sc = self.getScore(sector, symbol, sharpe, self.weightdict)
+            # sentiment = self.getSentiment(symbol)
             if measure == 1:
                 stocksdf.loc[len(stocksdf.index)] = [sector, symbol, 'Buy', sc]
             else: 
@@ -348,15 +420,30 @@ class CalculateStocks:
         sells['Technical Action'] = 'Sell'
         final_df = pd.concat([buys,sells])
         final_df.to_csv('{0}/portfolio/actions.csv'.format(self.path),index=False)
-    def getSentiment(f_list):
-        x = open('news.txt','w')
-        for sector in f_list:
-            sector = sector[:sector.find("-")]
-            news = yf.Ticker(sector).news
-            print(news)
-            print(type(news))
-            print(news[0])
-            break
+    def getSentiment(self, stock):
+        a = yf.Ticker(stock)
+        from textblob import TextBlob
+        # print(type(a.news))
+        # print(a.news)
+        
+        for x in a.news:
+            f = requests.get(x['link'])
+            html_content = f.content
+
+            soup = BeautifulSoup(html_content, 'html.parser')
+            text = soup.get_text()
+            blob = TextBlob(text)
+            sentiment = blob.sentiment.polarity
+            # print(sentiment_pipeline(text))
+            score = 0
+            if sentiment > 0:
+                score += 1
+            else:
+                score -= 1
+        if score > 0:
+            return 1
+        else:
+            return 0
 
 
 

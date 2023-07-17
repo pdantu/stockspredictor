@@ -11,15 +11,16 @@ path = os.getcwd()
 fred = Fred(api_key='13f1e0b5cbdcb8307bbf7bbca9852e4a')
 
 def main():
-    data = {'GDP': 'GDP', 'UNrate': 'UnemploymentRate', 'GDPC1': 'RealGDP', 'SP500': 'MarketPrice', 'DGDSRX1Q020SBEA': 'PersonalConsumption', 'IMPGSC1': 'Imports', 'NETEXC': 'Exports', 'DFF': 'FedRateHike', 'CORESTICKM159SFRBATL': 'CPI', 'UMCSENT': 'ConsumerSentiment'}
-    # getData(data)
-    # combineFredData(data)
+    data = {'GDP': 'GDP', 'UNrate': 'UnemploymentRate', 'GDPC1': 'RealGDP', 'SP500': 'MarketPrice', 'DGDSRX1Q020SBEA': 'PersonalConsumption', 'IMPGSC1': 'Imports', 'NETEXC': 'Exports', 'DFF': 'FedRateHike', 'CORESTICKM159SFRBATL': 'CPI', 'UMCSENT': 'ConsumerSentiment', 'JHDUSRGDPBR': 'Recession'}
+    getData(data)
+    combineFredData(data)
     df = pd.read_csv(path + '/macroecondata/final.csv')
+    print(df.tail())
     #getPredictionGDP(df)
     # getSpySectorWeights()
     #mergeData()
     # calculateMarketScore()
-    predict(df['GDP'])
+    # predict(df['GDP'])
  
 def getData(values):
     for x in values:
