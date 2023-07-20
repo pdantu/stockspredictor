@@ -27,13 +27,10 @@ from bs4 import BeautifulSoup
 class CalculateStocks:
 
     def main(self): 
-        # df = pd.read_csv('{0}/portfolio/portfoliovalue.csv'.format(self.path))  
-        # self.addCompName(df, 'value')
-        # df = pd.read_csv('{0}/portfolio/portfolioincome.csv'.format(self.path))  
-        # self.addCompName(df, 'income')
+        
         f_list = self.loop(self.path,False)
         types = ['growth', 'value', 'income']
-        # types = ['growth']
+        # # types = ['growth']
         for x in types:
             self.calcResults(self.path,f_list, x)
             df = pd.read_csv('{0}/portfolio/portfolio{1}.csv'.format(self.path, x))  
@@ -48,7 +45,7 @@ class CalculateStocks:
         self.addCompName(df, 'growth')
         #getSentiment(f_list)
         self.sendEmail(self.path)
-        self.stockPrediction('AAPL')
+        # self.stockPrediction('AAPL')
     def stockPrediction(self, stock):
         s = yf.Ticker(stock)
         from sklearn.model_selection import train_test_split
@@ -342,6 +339,7 @@ class CalculateStocks:
 
     def getScore(self, etf, stock, sharpe, columns):
         metricdf = pd.read_csv(self.path + '/metrics/' + etf + '-metrics.csv')
+       
         # metricdf = metricdf.fillna(0)
         factordict = {'Beta': -1 ,'Dividend Yield': 1, 'Forward P/E' : -1,'Trailing P/E': -1, 'Market Cap': 1, 'Trailing EPS': 1, 'Forward EPS': 1, 'PEG Ratio': -1, 'Price To Book': -1, 'E/V to EBITDA': -1, 'Free Cash Flow': 1, 'Deb To Equity': -1 ,'Earnings Growth': 1,'Ebitda margins': 1,'Quick Ratio': 1,'Target Mean Price': 1,'Return on Equity': 1 ,'Revenue Growth': 1,'Current Ratio': 1,'Current Price': 1}
         #print(metricdf.columns)
@@ -355,7 +353,7 @@ class CalculateStocks:
         # if etf == "XLV":
         #     print(stock)
         for x in columns.keys():
-
+            
             mean = metricdf[x].mean()
             sd = metricdf[x].std()
             val = tickerrow[x].iloc[0]
