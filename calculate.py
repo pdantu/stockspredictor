@@ -22,21 +22,32 @@ import math
 from datetime import date
 import requests
 from bs4 import BeautifulSoup
-
+from transformers import BertTokenizer, BertForSequenceClassification
+import torch
+import torch.nn.functional as F
+import nltk
+nltk.download('vader_lexicon')
+from nltk.sentiment import SentimentIntensityAnalyzer
 
 class CalculateStocks:
 
     def main(self): 
-        
+        # etfs = ['XLB', 'XLC', 'XLE', 'XLF', 'XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY']
+        # tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        # model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
+        # # etfs = ['XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY']
+        # # etfs = ['XLK']
+        # for x in etfs:
+        #     self.calculateSentiments(x, tokenizer, model)
+
         f_list = self.loop(self.path,False)
         types = ['growth', 'value', 'income']
-        # # types = ['growth']
+        
         for x in types:
             self.calcResults(self.path,f_list, x)
             df = pd.read_csv('{0}/portfolio/portfolio{1}.csv'.format(self.path, x))  
             self.writePortfolioToLogs(self.path,df)
-        # #findDifference('{0}/logs/2022-08-18_portfolio.csv'.format(path),'{0}/portfolio/portfolio.csv'.format(path))
-        # self.sendEmail(self.path)
+       
         df = pd.read_csv('{0}/portfolio/portfoliovalue.csv'.format(self.path))  
         self.addCompName(df, 'value')
         df = pd.read_csv('{0}/portfolio/portfolioincome.csv'.format(self.path))  
@@ -44,6 +55,8 @@ class CalculateStocks:
         df = pd.read_csv('{0}/portfolio/portfoliogrowth.csv'.format(self.path))  
         self.addCompName(df, 'growth')
         #getSentiment(f_list)
+         # #findDifference('{0}/logs/2022-08-18_portfolio.csv'.format(path),'{0}/portfolio/portfolio.csv'.format(path))
+        # self.sendEmail(self.path)
         self.sendEmail(self.path)
         # self.stockPrediction('AAPL')
     def stockPrediction(self, stock):
@@ -423,7 +436,9 @@ class CalculateStocks:
         from textblob import TextBlob
         # print(type(a.news))
         # print(a.news)
-        
+        if len(a.news) == 0:
+            return 0
+        score = 0
         for x in a.news:
             f = requests.get(x['link'])
             html_content = f.content
@@ -433,8 +448,8 @@ class CalculateStocks:
             blob = TextBlob(text)
             sentiment = blob.sentiment.polarity
             # print(sentiment_pipeline(text))
-            score = 0
-            if sentiment > 0:
+            
+            if sentiment > 0.2:
                 score += 1
             else:
                 score -= 1
@@ -442,8 +457,91 @@ class CalculateStocks:
             return 1
         else:
             return 0
+    def getSentimentByNews(self, stock, tokenizer, model):
+        
+        a = yf.Ticker(stock)
+        # Sample input text
+        score = 0
+        for x in a.news:
+            f = requests.get(x['link'])
+            html_content = f.content
 
+            soup = BeautifulSoup(html_content, 'html.parser')
+            text = soup.get_text() 
 
+        # Tokenize input
+            inputs = tokenizer(text, return_tensors='pt', truncation=True, padding='max_length', max_length=512)
+
+        # Make prediction
+            outputs = model(**inputs)
+            predictions = outputs.logits
+
+        
+
+            # Apply softmax to get probabilities
+            probs = F.softmax(predictions, dim=1)
+
+            # Get the predicted sentiment (0 for negative, 1 for positive)
+            _, predicted_class = torch.max(probs, dim=1)
+            predicted_sentiment = predicted_class.item()
+
+            # Get the probability for the predicted sentiment
+            predicted_prob = probs[0, predicted_class].item()
+            
+            if predicted_sentiment == 1 and predicted_prob > 0.65:
+                score += 1
+            elif predicted_sentiment != 1 and predicted_prob > 0.65:
+                score -= 1
+            else:
+                continue
+            
+        if score > 0:
+            return 1
+        elif score == 0:
+            return -1
+        else: 
+            return 0
+            
+    def getSentimentFast(self, stock):
+        a = yf.Ticker(stock)
+        sid = SentimentIntensityAnalyzer()
+        score = 0
+        for x in a.news:
+            f = requests.get(x['link'])
+            html_content = f.content
+
+            soup = BeautifulSoup(html_content, 'html.parser')
+            text = soup.get_text()
+            sentiment_score = sid.polarity_scores(text)
+            # print(sentiment_score)
+            # Interpret the sentiment score
+            if sentiment_score['compound'] >= 0.05:
+                sentiment = 'Positive'
+                score += 1
+            elif sentiment_score['compound'] <= -0.05:
+                sentiment = 'Negative'
+                score -= 1
+            else:
+                sentiment = 'Neutral'
+
+            # print(f"Sentiment: {sentiment}")
+        if score > 0:
+            return 1
+        elif score < 0:
+            return -1
+        else:
+            return 0
+
+    def calculateSentiments(self, etf, tokenizer, model):
+        print('Processing: ' + etf)
+        data = pd.read_csv('{0}/metrics/{1}-metrics.csv'.format(self.path, etf))
+        data = data.rename(columns={'Unnamed: 0': 'Symbol'})
+        values = []
+        for x in data['Symbol']:
+            val = self.getSentimentFast(x)
+            values.append(val)
+        data['Sentiment'] = val
+        data.to_csv('{0}/metrics/{1}-metrics.csv'.format(self.path, etf),index=False)
 
     def __init__(self) -> None:
         self.path = os.getcwd()
