@@ -272,11 +272,17 @@ class CalculateStocks:
                 if k > 100:
                     measure -= 1
             if type == 'growth':
-                self.weightdict = {'Forward EPS': 3, 'Forward P/E': 3, 'PEG Ratio': 3, 'Market Cap': 1, 'Price To Book': 1, 'Return on Equity': 3, 'Free Cash Flow': 1, 'Revenue Growth': 3, 'Dividend Yield': 1, 'Deb To Equity': 1, 'Earnings Growth': 3}
+                # {'Forward EPS': 3, 'Forward P/E': 3, 'PEG Ratio': 3, 'Market Cap': 1, 'Price To Book': 1, 'Return on Equity': 3, 'Free Cash Flow': 1, 'Revenue Growth': 3, 'Dividend Yield': 1, 'Debt To Equity': 1, 'Earnings Growth': 3}
+                self.weightdict = {'Forward EPS': 3, 'Forward P/E': 3, 'PEG Ratio': 3, 'Market Cap': 1, 'Price To Book': 1, 'Return on Equity': 3, 'Free Cash Flow': 1, 'Revenue Growth': 3, 'Dividend Yield': 1, 'Debt to Equity': 1, 'Earnings Growth': 3}
             elif type == 'value':
-                self.weightdict = {'Trailing P/E': 3, 'Forward P/E': 3, 'PEG Ratio': 1, 'Market Cap': 1, 'Price To Book': 3, 'Return on Equity': 1, 'Free Cash Flow': 3, 'Revenue Growth': 1, 'Dividend Yield': 3, 'Deb To Equity': 1, 'E/V to EBITDA': 3, 'Beta': 3}
+                self.weightdict = {'Trailing P/E': 3, 'Forward P/E': 3, 'PEG Ratio': 1, 'Market Cap': 1, 'Price To Book': 3, 'Return on Equity': 1, 'Free Cash Flow': 3, 'Revenue Growth': 1, 'Dividend Yield': 3, 'Debt to Equity': 1, 'E/V to EBITDA': 3, 'Beta': 3}
             elif type == 'income':
-                self.weightdict = {'Forward EPS': 3, 'Forward P/E': 1, 'PEG Ratio': 1, 'Market Cap': 1, 'Price To Book': 1, 'Return on Equity': 1, 'Free Cash Flow': 3, 'Revenue Growth': 1, 'Dividend Yield': 3, 'Deb To Equity': 3, 'Trailing EPS': 3}
+                self.weightdict = {'Forward EPS': 3, 'Forward P/E': 1, 'PEG Ratio': 1, 'Market Cap': 1, 'Price To Book': 1, 'Return on Equity': 1, 'Free Cash Flow': 3, 'Revenue Growth': 1, 'Dividend Yield': 3, 'Debt to Equity': 3, 'Trailing EPS': 3}
+
+
+
+
+
             # {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1}
             
             sc = self.getScore(sector, symbol, sharpe, self.weightdict)
@@ -354,9 +360,9 @@ class CalculateStocks:
         metricdf = pd.read_csv(self.path + '/metrics/' + etf + '-metrics.csv')
        
         # metricdf = metricdf.fillna(0)
-        factordict = {'Beta': -1 ,'Dividend Yield': 1, 'Forward P/E' : -1,'Trailing P/E': -1, 'Market Cap': 1, 'Trailing EPS': 1, 'Forward EPS': 1, 'PEG Ratio': -1, 'Price To Book': -1, 'E/V to EBITDA': -1, 'Free Cash Flow': 1, 'Deb To Equity': -1 ,'Earnings Growth': 1,'Ebitda margins': 1,'Quick Ratio': 1,'Target Mean Price': 1,'Return on Equity': 1 ,'Revenue Growth': 1,'Current Ratio': 1,'Current Price': 1}
+        factordict = {'Beta': -1 ,'Dividend Yield': 1, 'Forward P/E' : -1,'Trailing P/E': -1, 'Market Cap': 1, 'Trailing EPS': 1, 'Forward EPS': 1, 'PEG Ratio': -1, 'Price To Book': -1, 'E/V to EBITDA': -1, 'Free Cash Flow': 1, 'Debt to Equity': -1 ,'Earnings Growth': 1,'Ebitda margins': 1,'Quick Ratio': 1,'Target Mean Price': 1,'Return on Equity': 1 ,'Revenue Growth': 1,'Current Ratio': 1,'Current Price': 1}
         #print(metricdf.columns)
-        subdf = metricdf[columns]
+        # subdf = metricdf[columns]
         #print(metricdf['Unnamed: 0'].head())
         score = 0
         metricdf.rename(columns={metricdf.columns[0]:"Symbol"}, inplace=True)
@@ -366,7 +372,6 @@ class CalculateStocks:
         # if etf == "XLV":
         #     print(stock)
         for x in columns.keys():
-            
             mean = metricdf[x].mean()
             sd = metricdf[x].std()
             val = tickerrow[x].iloc[0]

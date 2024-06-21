@@ -4,6 +4,7 @@ import numpy as np
 import json
 import csv
 import os
+import yfinance as yf
 from yahooquery import Ticker
 from yahooquery.utils import _convert_to_timestamp, _flatten_list, _history_dataframe
 path = os.getcwd()
@@ -82,152 +83,187 @@ def getSectData(sector,stock_list): #singlesectorDict
 
 def singleStockData(stock):
     answer = {}
-    #a = Ticker('AAPL', asynchronous=True)
-    ticker = Ticker(stock, asynchronous=True)
-    try:
-        summary = ticker.summary_detail[stock]
-        # print(summary)
-        default = ticker.key_stats[stock]
-        finance = ticker.financial_data[stock]
+    ticker = yf.Ticker(stock)
     
-    #print(default)
-        if summary: # use summary_detail method
+    try:
+        info = ticker.info
+        if info:
             try:
-                beta = summary.get('beta')
-                if type(beta) == dict:
-                    answer['Beta'] = None
-                else:
-                    answer['Beta'] = beta   # good
-
-                divY = summary.get('dividendYield')
-                if type(divY) == dict:
-                    answer['Dividend Yield'] = None
-                else:
-                    answer['Dividend Yield'] = divY  # good
-
-                forwardPE = summary.get('forwardPE')
-                if type(forwardPE) == dict:
-                    answer['Forward P/E'] = None
-                else:
-                    answer['Forward P/E'] = forwardPE # good
-
-                trailingPE = summary.get('trailingPE')
-                if type(trailingPE) == dict:
-                    answer['Trailing P/E'] = None
-                else:
-                    answer['Trailing P/E'] = trailingPE # good
-
-                marketCap = summary.get('marketCap')
-                if type(marketCap) == dict:
-                    answer['Market Cap'] = None
-                else:
-                    answer['Market Cap'] = marketCap # 
-            except Exception as e: 
-                print(stock)
-
-        
-        if default: # use key_stats method
-            try:
-                trailingEPS = default.get('trailingEps')
-                if type(trailingEPS) == dict:
-                    answer['Trailing EPS'] = None
-                else:
-                    answer['Trailing EPS'] = trailingEPS 
-
-                forwardEPS = default.get('forwardEps')
-                if type(forwardEPS) == dict:
-                    answer['Forward EPS'] = None
-                else:
-                    answer['Forward EPS'] = forwardEPS
-
-                pegRatio = default.get('pegRatio')
-                if type(pegRatio) == dict:
-                    answer['PEG Ratio'] = None
-                else:
-                    answer['PEG Ratio'] = pegRatio
-
-                priceToBook = default.get('priceToBook')
-                if type(priceToBook) == dict:
-                    answer['Price To Book'] = None
-                else:
-                    answer['Price To Book'] = priceToBook
-
-                evtoeb = default.get('enterpriseToEbitda')
-                if type(evtoeb) == dict:
-                    answer['E/V to EBITDA'] = None
-                else:
-                    answer['E/V to EBITDA'] = evtoeb
-            except Exception as e: 
-                print(stock)
-
-        
-        if finance:  #get from financial_data
-            try:
-                freeCashFlow = finance.get('freeCashflow')
-                if type(freeCashFlow) == dict:
-                    answer['Free Cash Flow'] = None
-                else:
-                    answer['Free Cash Flow'] = freeCashFlow
-
-                debtToEquity = finance.get('debtToEquity')
-                if type(debtToEquity) == dict:
-                    answer['Deb to Equity'] = None
-                else:
-                    answer['Deb To Equity'] = debtToEquity
-
-                earningsGrowth = finance.get('earningsGrowth')
-                if type(earningsGrowth) == dict:
-                    answer['Earnings Growth'] = None
-                else:
-                    answer["Earnings Growth"] = earningsGrowth
-
-                ebitdaMargins = finance.get('ebitdaMargins')
-                if type(ebitdaMargins) == dict:
-                    answer['Ebitda margins'] = None
-                else:
-                    answer['Ebitda margins'] = ebitdaMargins
-
-                quickRatio = finance.get('quickRatio')
-                if type(quickRatio) == dict:
-                    answer['Quick Ratio'] = None
-                else:
-                    answer['Quick Ratio'] = quickRatio
-
-                targetMeanPrice = finance.get('targetMeanPrice')
-                if type(targetMeanPrice) == dict:
-                    answer['Target Mean Price'] = None
-                else:
-                    answer['Target Mean Price'] = targetMeanPrice
-
-                returnOnEquity = finance.get('returnOnEquity')
-                if type(returnOnEquity) == dict:
-                    answer['Return on Equity'] = None
-                else:
-                    answer['Return on Equity'] = returnOnEquity
-
-                revenueGrowth = finance.get('revenueGrowth')
-                if type(revenueGrowth) == dict:
-                    answer['Revenue Growth'] = None
-                else:
-                    answer['Revenue Growth'] = revenueGrowth
-
-                currentRatio = finance.get('currentRatio')
-                if type(currentRatio) == dict:
-                    answer['Current Ratio'] = None
-                else:
-                    answer["Current Ratio"] = currentRatio
-
-                currentPrice = finance.get('currentPrice')
-                if type(currentPrice) == dict:
-                    answer['Current Price'] = None
-                else:
-                    answer['Current Price'] = currentPrice
-            except:
+                answer['Beta'] = info.get('beta', None)
+                answer['Dividend Yield'] = info.get('dividendYield', None)
+                answer['Forward P/E'] = info.get('forwardPE', None)
+                answer['Trailing P/E'] = info.get('trailingPE', None)
+                answer['Market Cap'] = info.get('marketCap', None)
+                answer['Trailing EPS'] = info.get('trailingEps', None)
+                answer['Forward EPS'] = info.get('forwardEps', None)
+                answer['PEG Ratio'] = info.get('pegRatio', None)
+                answer['Price To Book'] = info.get('priceToBook', None)
+                answer['E/V to EBITDA'] = info.get('enterpriseToEbitda', None)
+                answer['Free Cash Flow'] = info.get('freeCashflow', None)
+                answer['Debt to Equity'] = info.get('debtToEquity', None)
+                answer['Earnings Growth'] = info.get('earningsQuarterlyGrowth', None)
+                answer['Ebitda Margins'] = info.get('ebitdaMargins', None)
+                answer['Quick Ratio'] = info.get('quickRatio', None)
+                answer['Target Mean Price'] = info.get('targetMeanPrice', None)
+                answer['Return on Equity'] = info.get('returnOnEquity', None)
+                answer['Revenue Growth'] = info.get('revenueGrowth', None)
+                answer['Current Ratio'] = info.get('currentRatio', None)
+                answer['Current Price'] = info.get('currentPrice', None)
+            except Exception as e:
                 print(stock)
     except Exception as e:
         print(stock)
 
     return answer
+    # answer = {}
+    # #a = Ticker('AAPL', asynchronous=True)
+    # ticker = Ticker(stock, asynchronous=True)
+    # print(ticker.summary_detail)
+    # try:
+    #     summary = ticker.summary_detail[stock]
+    #     print(summary)
+    #     # print(summary)
+    #     default = ticker.key_stats[stock]
+    #     finance = ticker.financial_data[stock]
+    
+    # #print(default)
+    #     if summary: # use summary_detail method
+    #         try:
+    #             beta = summary.get('beta')
+    #             if type(beta) == dict:
+    #                 answer['Beta'] = None
+    #             else:
+    #                 answer['Beta'] = beta   # good
+
+    #             divY = summary.get('dividendYield')
+    #             if type(divY) == dict:
+    #                 answer['Dividend Yield'] = None
+    #             else:
+    #                 answer['Dividend Yield'] = divY  # good
+
+    #             forwardPE = summary.get('forwardPE')
+    #             if type(forwardPE) == dict:
+    #                 answer['Forward P/E'] = None
+    #             else:
+    #                 answer['Forward P/E'] = forwardPE # good
+
+    #             trailingPE = summary.get('trailingPE')
+    #             if type(trailingPE) == dict:
+    #                 answer['Trailing P/E'] = None
+    #             else:
+    #                 answer['Trailing P/E'] = trailingPE # good
+
+    #             marketCap = summary.get('marketCap')
+    #             if type(marketCap) == dict:
+    #                 answer['Market Cap'] = None
+    #             else:
+    #                 answer['Market Cap'] = marketCap # 
+    #         except Exception as e: 
+    #             print(stock)
+
+        
+    #     if default: # use key_stats method
+    #         try:
+    #             trailingEPS = default.get('trailingEps')
+    #             if type(trailingEPS) == dict:
+    #                 answer['Trailing EPS'] = None
+    #             else:
+    #                 answer['Trailing EPS'] = trailingEPS 
+
+    #             forwardEPS = default.get('forwardEps')
+    #             if type(forwardEPS) == dict:
+    #                 answer['Forward EPS'] = None
+    #             else:
+    #                 answer['Forward EPS'] = forwardEPS
+
+    #             pegRatio = default.get('pegRatio')
+    #             if type(pegRatio) == dict:
+    #                 answer['PEG Ratio'] = None
+    #             else:
+    #                 answer['PEG Ratio'] = pegRatio
+
+    #             priceToBook = default.get('priceToBook')
+    #             if type(priceToBook) == dict:
+    #                 answer['Price To Book'] = None
+    #             else:
+    #                 answer['Price To Book'] = priceToBook
+
+    #             evtoeb = default.get('enterpriseToEbitda')
+    #             if type(evtoeb) == dict:
+    #                 answer['E/V to EBITDA'] = None
+    #             else:
+    #                 answer['E/V to EBITDA'] = evtoeb
+    #         except Exception as e: 
+    #             print(stock)
+
+        
+    #     if finance:  #get from financial_data
+    #         try:
+    #             freeCashFlow = finance.get('freeCashflow')
+    #             if type(freeCashFlow) == dict:
+    #                 answer['Free Cash Flow'] = None
+    #             else:
+    #                 answer['Free Cash Flow'] = freeCashFlow
+
+    #             debtToEquity = finance.get('debtToEquity')
+    #             if type(debtToEquity) == dict:
+    #                 answer['Deb to Equity'] = None
+    #             else:
+    #                 answer['Deb To Equity'] = debtToEquity
+
+    #             earningsGrowth = finance.get('earningsGrowth')
+    #             if type(earningsGrowth) == dict:
+    #                 answer['Earnings Growth'] = None
+    #             else:
+    #                 answer["Earnings Growth"] = earningsGrowth
+
+    #             ebitdaMargins = finance.get('ebitdaMargins')
+    #             if type(ebitdaMargins) == dict:
+    #                 answer['Ebitda margins'] = None
+    #             else:
+    #                 answer['Ebitda margins'] = ebitdaMargins
+
+    #             quickRatio = finance.get('quickRatio')
+    #             if type(quickRatio) == dict:
+    #                 answer['Quick Ratio'] = None
+    #             else:
+    #                 answer['Quick Ratio'] = quickRatio
+
+    #             targetMeanPrice = finance.get('targetMeanPrice')
+    #             if type(targetMeanPrice) == dict:
+    #                 answer['Target Mean Price'] = None
+    #             else:
+    #                 answer['Target Mean Price'] = targetMeanPrice
+
+    #             returnOnEquity = finance.get('returnOnEquity')
+    #             if type(returnOnEquity) == dict:
+    #                 answer['Return on Equity'] = None
+    #             else:
+    #                 answer['Return on Equity'] = returnOnEquity
+
+    #             revenueGrowth = finance.get('revenueGrowth')
+    #             if type(revenueGrowth) == dict:
+    #                 answer['Revenue Growth'] = None
+    #             else:
+    #                 answer['Revenue Growth'] = revenueGrowth
+
+    #             currentRatio = finance.get('currentRatio')
+    #             if type(currentRatio) == dict:
+    #                 answer['Current Ratio'] = None
+    #             else:
+    #                 answer["Current Ratio"] = currentRatio
+
+    #             currentPrice = finance.get('currentPrice')
+    #             if type(currentPrice) == dict:
+    #                 answer['Current Price'] = None
+    #             else:
+    #                 answer['Current Price'] = currentPrice
+    #         except:
+    #             print(stock)
+    # except Exception as e:
+    #     print(stock)
+
+    # return answer
 
 
 
