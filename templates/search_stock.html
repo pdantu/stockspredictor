@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Stock Ticker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        p {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search Stock Ticker</h1>
+    <form action="/search_stock" method="POST">
+        <label for="stock_ticker">Enter Stock Ticker:</label>
+        <input type="text" id="stock_ticker" name="stock_ticker" required>
+        <button type="submit">Search</button>
+    </form>
+    
+    {% if search_result %}
+        {% if not search_result.empty %}
+            <h2>Search Result</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Technical Action</th>
+                        <th>Score</th>
+                        <th>Sector</th>
+                        <!-- Add more columns as needed -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for index, row in search_result.iterrows() %}
+                        <tr>
+                            <td>{{ row['Ticker'] }}</td>
+                            <td>{{ row['Technical Action'] }}</td>
+                            <td>{{ row['Score'] }}</td>
+                            <td>{{ row['Sector'] }}</td>
+                            <!-- Display more columns as needed -->
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No data found for '{{ request.form["stock_ticker"] }}'.</p>
+        {% endif %}
+    {% endif %}
+    
+</body>
+</html>

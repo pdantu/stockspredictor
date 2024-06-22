@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Action Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        form {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 80%;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sector ETF Action Data</h1>
+    <form method="POST">
+        <label for="sector">Select Sector:</label>
+        <select id="sector" name="sector">
+            {% for sector in sectors %}
+                <option value="{{ sector }}" {% if sector == selected_sector %}selected{% endif %}>{{ sector }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Show Data">
+    </form>
+
+    {% if data is not none %}
+        <h2>{{ selected_sector }} Sector Action Data</h2>
+        <table>
+            <thead>
+                <tr>
+                    {% for col in data.columns %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data.itertuples() %}
+                    <tr>
+                        {% for value in row[1:] %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        {% if selected_sector %}
+            <p class="error">No action data available for the selected sector.</p>
+        {% endif %}
+    {% endif %}
+</body>
+</html>
