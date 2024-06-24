@@ -147,17 +147,29 @@ def portfolios():
 
 @app.route('/search_stock', methods=['GET', 'POST'])
 def search_stock():
-    # Merge CSV files before searching
-    merge_csv_files()
     df = pd.read_csv('merged.csv')
     search_result = None
     if request.method == 'POST':
-        stock_ticker = request.form['stock_ticker'].upper()
-        search_result = df[df['Ticker'] == stock_ticker]
+        stock_tickers = request.form['stock_ticker'].upper().split(',')
+        stock_tickers = [ticker.strip() for ticker in stock_tickers]
+        search_result = df[df['Ticker'].isin(stock_tickers)]
         if search_result.empty:
             search_result = None
 
     return render_template('search_stock.html', search_result=search_result)
+# def search_stock():
+#     # Merge CSV files before searching
+#     # merge_csv_files()
+#     df = pd.read_csv('merged.csv')
+#     search_result = None
+#     if request.method == 'POST':
+#         stock_ticker = request.form['stock_ticker'].upper()
+#         search_result = df[df['Ticker'] == stock_ticker]
+#         print(search_result)
+#         if search_result.empty:
+#             search_result = None
+#         print(search_result)
+#     return render_template('search_stock.html', search_result=search_result)
 
 if __name__ == '__main__':
     app.run(debug=True)

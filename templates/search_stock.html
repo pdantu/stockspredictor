@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Search Stock Ticker</title>
+    <title>Search Stock Tickers</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -36,16 +36,16 @@
     </style>
 </head>
 <body>
-    <h1>Search Stock Ticker</h1>
+    <h1>Search Stock Tickers</h1>
     <form action="/search_stock" method="POST">
-        <label for="stock_ticker">Enter Stock Ticker:</label>
+        <label for="stock_ticker">Enter Stock Tickers (comma separated):</label>
         <input type="text" id="stock_ticker" name="stock_ticker" required>
         <button type="submit">Search</button>
     </form>
     
-    {% if search_result %}
+    {% if search_result is not none %}
         {% if not search_result.empty %}
-            <h2>Search Result</h2>
+            <h2>Search Results</h2>
             <table>
                 <thead>
                     <tr>
