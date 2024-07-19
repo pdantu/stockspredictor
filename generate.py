@@ -7,15 +7,64 @@ import os
 import yfinance as yf
 from yahooquery import Ticker
 from yahooquery.utils import _convert_to_timestamp, _flatten_list, _history_dataframe
+import sqlite3
+from datetime import datetime
 path = os.getcwd()
 sectorETF = ['XLK','XLF','XLU','XLI','XLE','XLV','XLP','XLY','XLC','XLRE','XLB','XLC']
 
+import sqlite3
+
+def create_table():
+    conn = sqlite3.connect('data.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS metrics (
+            id INTEGER PRIMARY KEY,
+            ETF TEXT,
+            Ticker TEXT,
+            Beta REAL,
+            Dividend_Yield REAL,
+            Forward_PE REAL,
+            Trailing_PE REAL,
+            Market_Cap REAL,
+            Trailing_EPS REAL,
+            Forward_EPS REAL,
+            PEG_Ratio REAL,
+            Price_To_Book REAL,
+            EV_to_EBITDA REAL,
+            Free_Cash_Flow REAL,
+            Debt_to_Equity REAL,
+            Earnings_Growth REAL,
+            Ebitda_Margins REAL,
+            Quick_Ratio REAL,
+            Target_Mean_Price REAL,
+            Return_on_Equity REAL,
+            Revenue_Growth REAL,
+            Current_Ratio REAL,
+            Current_Price REAL,
+            date TEXT
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+
+
 def main():
     # print(1)
+    drop_table()
     print(path)
+    create_table()
     # singleStoc$kData('AAPL')
     runAll()
     
+def drop_table():
+    conn = sqlite3.connect('data.db')
+    cursor = conn.cursor()
+    cursor.execute('DROP TABLE IF EXISTS metrics')
+    conn.commit()
+    conn.close()
 
 def runAll():
     stocks = preprocessAll(sectorETF)
@@ -77,8 +126,41 @@ def getSectData(sector,stock_list): #singlesectorDict
         newDict[sector][stock] = singleStockData(stock)
     
     df = pd.DataFrame.from_dict(newDict[sector],orient='index')
-    df.to_csv('{0}/metrics/{1}-metrics.csv'.format(path,sector))
+    df = df.reset_index()
+    df = df.rename(columns={'index': 'Ticker'})
+    # df.to_csv('{0}/metrics/{1}-metrics.csv'.format(path,sector))
+    df = df.rename(columns={
+        'Dividend Yield': 'Dividend_Yield',
+        'Forward P/E': 'Forward_PE',
+        'Trailing P/E': 'Trailing_PE',
+        'Market Cap': 'Market_Cap',
+        'Trailing EPS': 'Trailing_EPS',
+        'Forward EPS': 'Forward_EPS',
+        'PEG Ratio': 'PEG_Ratio',
+        'Price To Book': 'Price_To_Book',
+        'E/V to EBITDA': 'EV_to_EBITDA',
+        'Free Cash Flow': 'Free_Cash_Flow',
+        'Debt to Equity': 'Debt_to_Equity',
+        'Earnings Growth': 'Earnings_Growth',
+        'Ebitda Margins': 'Ebitda_Margins',
+        'Quick Ratio': 'Quick_Ratio',
+        'Target Mean Price': 'Target_Mean_Price',
+        'Return on Equity': 'Return_on_Equity',
+        'Revenue Growth': 'Revenue_Growth',
+        'Current Ratio': 'Current_Ratio',
+        'Current Price': 'Current_Price'
+    })
+
+    df['ETF'] = sector
+    df['date'] = datetime.now().strftime('%Y-%m-%d')
     
+    # Connect to SQLite database (it will be created if it doesn't exist)
+    conn = sqlite3.connect('data.db')
+    
+    # Save the DataFrame to the SQLite database
+    df.to_sql('metrics', conn, if_exists='append', index=False)
+    
+    conn.close()
     
 
 def singleStockData(stock):

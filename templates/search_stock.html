@@ -68,10 +68,13 @@
                     {% endfor %}
                 </tbody>
             </table>
+            <form action="/download_search_results" method="POST">
+                <input type="hidden" name="stock_ticker" value="{{ request.form['stock_ticker'] }}">
+                <button type="submit">Download CSV</button>
+            </form>
         {% else %}
             <p>No data found for '{{ request.form["stock_ticker"] }}'.</p>
         {% endif %}
     {% endif %}
-    
 </body>
 </html>
