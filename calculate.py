@@ -28,8 +28,34 @@ import torch.nn.functional as F
 import nltk
 nltk.download('vader_lexicon')
 from nltk.sentiment import SentimentIntensityAnalyzer
+import sqlite3
+from datetime import datetime
 
 class CalculateStocks:
+    def drop_table():
+        conn = sqlite3.connect('data.db')
+        cursor = conn.cursor()
+        cursor.execute('DROP TABLE IF EXISTS results')
+        conn.commit()
+        conn.close()
+    
+    def create_table():
+        conn = sqlite3.connect('data.db')
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS action (
+                id INTEGER PRIMARY KEY,
+                ETF TEXT,
+                Ticker TEXT,
+                Technical_Action TEXT,
+                Score REAL,
+                date TEXT
+            )
+        ''')
+
+        conn.commit()
+        conn.close()
 
     def main(self): 
         # etfs = ['XLB', 'XLC', 'XLE', 'XLF', 'XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY']
@@ -41,23 +67,23 @@ class CalculateStocks:
         #     self.calculateSentiments(x, tokenizer, model)
 
         f_list = self.loop(self.path,False)
-        types = ['growth', 'value', 'income']
-        
+        # types = ['growth', 'value', 'income']
+        types = ['growth']
         for x in types:
             self.calcResults(self.path,f_list, x)
             df = pd.read_csv('{0}/portfolio/portfolio{1}.csv'.format(self.path, x))  
             self.writePortfolioToLogs(self.path,df)
        
-        df = pd.read_csv('{0}/portfolio/portfoliovalue.csv'.format(self.path))  
-        self.addCompName(df, 'value')
-        df = pd.read_csv('{0}/portfolio/portfolioincome.csv'.format(self.path))  
-        self.addCompName(df, 'income')
+        # df = pd.read_csv('{0}/portfolio/portfoliovalue.csv'.format(self.path))  
+        # self.addCompName(df, 'value')
+        # df = pd.read_csv('{0}/portfolio/portfolioincome.csv'.format(self.path))  
+        # self.addCompName(df, 'income')
         df = pd.read_csv('{0}/portfolio/portfoliogrowth.csv'.format(self.path))  
         self.addCompName(df, 'growth')
         #getSentiment(f_list)
          # #findDifference('{0}/logs/2022-08-18_portfolio.csv'.format(path),'{0}/portfolio/portfolio.csv'.format(path))
         # self.sendEmail(self.path)
-        self.sendEmail(self.path)
+        # self.sendEmail(self.path)
         # self.stockPrediction('AAPL')
     def stockPrediction(self, stock):
         s = yf.Ticker(stock)
@@ -295,6 +321,17 @@ class CalculateStocks:
         stocksdf = stocksdf.sort_values(by=['Score'], ascending=False)
         buys = stocksdf[stocksdf['Technical Action'] == 'Buy']
         stocksdf.to_csv(self.path + '/results/' + sector + '-action.csv')
+        stocksdf['date'] = datetime.now().strftime('%Y-%m-%d')
+    
+        # Connect to SQLite database (it will be created if it doesn't exist)
+        conn = sqlite3.connect('data.db')
+        
+        # Save the DataFrame to the SQLite database
+        stocksdf.to_sql('action', conn, if_exists='append', index=True)
+        
+        conn.close()
+
+
         buys.to_csv(self.path + '/results/' + sector + '-buys.csv')
         if (sector == 'QQQ' or sector =='SPY'):
             return d_list
@@ -358,20 +395,52 @@ class CalculateStocks:
 
     def getScore(self, etf, stock, sharpe, columns):
         metricdf = pd.read_csv(self.path + '/metrics/' + etf + '-metrics.csv')
-       
+        conn = sqlite3.connect('data.db')
+        cursor = conn.cursor()
+        query = "SELECT * FROM metrics WHERE ETF = ?"
+        metricdf = pd.read_sql_query(query, conn, params=(etf,))
+                # Reversing the column name mapping
+        metricdf = metricdf.rename(columns={
+            'Dividend_Yield': 'Dividend Yield',
+            'Forward_PE': 'Forward P/E',
+            'Trailing_PE': 'Trailing P/E',
+            'Market_Cap': 'Market Cap',
+            'Trailing_EPS': 'Trailing EPS',
+            'Forward_EPS': 'Forward EPS',
+            'PEG_Ratio': 'PEG Ratio',
+            'Price_To_Book': 'Price To Book',
+            'EV_to_EBITDA': 'E/V to EBITDA',
+            'Free_Cash_Flow': 'Free Cash Flow',
+            'Debt_to_Equity': 'Debt to Equity',
+            'Earnings_Growth': 'Earnings Growth',
+            'Ebitda_Margins': 'Ebitda Margins',
+            'Quick_Ratio': 'Quick Ratio',
+            'Target_Mean_Price': 'Target Mean Price',
+            'Return_on_Equity': 'Return on Equity',
+            'Revenue_Growth': 'Revenue Growth',
+            'Current_Ratio': 'Current Ratio',
+            'Current_Price': 'Current Price'
+        })
+
+        conn.close()
         # metricdf = metricdf.fillna(0)
         factordict = {'Beta': -1 ,'Dividend Yield': 1, 'Forward P/E' : -1,'Trailing P/E': -1, 'Market Cap': 1, 'Trailing EPS': 1, 'Forward EPS': 1, 'PEG Ratio': -1, 'Price To Book': -1, 'E/V to EBITDA': -1, 'Free Cash Flow': 1, 'Debt to Equity': -1 ,'Earnings Growth': 1,'Ebitda margins': 1,'Quick Ratio': 1,'Target Mean Price': 1,'Return on Equity': 1 ,'Revenue Growth': 1,'Current Ratio': 1,'Current Price': 1}
-        #print(metricdf.columns)
+        # print(metricdf.columns)
+        # print(metricdf.columns[0])
         # subdf = metricdf[columns]
         #print(metricdf['Unnamed: 0'].head())
         score = 0
-        metricdf.rename(columns={metricdf.columns[0]:"Symbol"}, inplace=True)
+        # metricdf.rename(columns={metricdf.columns[0]:"Symbol"}, inplace=True)
         #print(metricdf['Symbol'].head())
-        tickerrow = metricdf[metricdf['Symbol'] == stock]
+        tickerrow = metricdf[metricdf['Ticker'] == stock]
+        # print(stock)
         tickerrow = tickerrow.fillna(0)
+        # print(tickerrow)
         # if etf == "XLV":
         #     print(stock)
         for x in columns.keys():
+            if x == 'id' or x == 'ETF' or x == 'index' or x == 'date':
+                continue
             mean = metricdf[x].mean()
             sd = metricdf[x].std()
             val = tickerrow[x].iloc[0]
