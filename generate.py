@@ -53,9 +53,9 @@ def create_table():
 
 def main():
     # print(1)
-    drop_table()
+    # drop_table()
     print(path)
-    create_table()
+    # create_table()
     # singleStoc$kData('AAPL')
     runAll()
     
@@ -153,14 +153,15 @@ def getSectData(sector,stock_list): #singlesectorDict
 
     df['ETF'] = sector
     df['date'] = datetime.now().strftime('%Y-%m-%d')
-    
+    output_path = f'{path}/metrics/{sector}-metrics.csv'
+    df.to_csv(output_path, index=False)
     # Connect to SQLite database (it will be created if it doesn't exist)
-    conn = sqlite3.connect('data.db')
+    # conn = sqlite3.connect('data.db')
     
-    # Save the DataFrame to the SQLite database
-    df.to_sql('metrics', conn, if_exists='append', index=False)
+    # # Save the DataFrame to the SQLite database
+    # df.to_sql('metrics', conn, if_exists='append', index=False)
     
-    conn.close()
+    # conn.close()
     
 
 def singleStockData(stock):

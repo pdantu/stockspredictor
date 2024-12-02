@@ -32,46 +32,15 @@ import sqlite3
 from datetime import datetime
 
 class CalculateStocks:
-    def drop_table():
-        conn = sqlite3.connect('data.db')
-        cursor = conn.cursor()
-        cursor.execute('DROP TABLE IF EXISTS results')
-        conn.commit()
-        conn.close()
-    
-    def create_table():
-        conn = sqlite3.connect('data.db')
-        cursor = conn.cursor()
-
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS action (
-                id INTEGER PRIMARY KEY,
-                ETF TEXT,
-                Ticker TEXT,
-                Technical_Action TEXT,
-                Score REAL,
-                date TEXT
-            )
-        ''')
-
-        conn.commit()
-        conn.close()
 
     def main(self): 
-        # etfs = ['XLB', 'XLC', 'XLE', 'XLF', 'XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY']
-        # tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        # model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
-        # # etfs = ['XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY']
-        # # etfs = ['XLK']
-        # for x in etfs:
-        #     self.calculateSentiments(x, tokenizer, model)
-
         f_list = self.loop(self.path,False)
         # types = ['growth', 'value', 'income']
         types = ['growth']
         for x in types:
             self.calcResults(self.path,f_list, x)
-            df = pd.read_csv('{0}/portfolio/portfolio{1}.csv'.format(self.path, x))  
+            df = pd.read_csv('{0}/portfolio/portfolio{1}.csv'.format(self.path, x))
+
             self.writePortfolioToLogs(self.path,df)
        
         # df = pd.read_csv('{0}/portfolio/portfoliovalue.csv'.format(self.path))  
@@ -219,8 +188,6 @@ class CalculateStocks:
         print('Mail Sent')
 
 
-
-
     def calcResults(self, path,f_list,type):
         d_list = []
         for name in f_list:
@@ -256,7 +223,7 @@ class CalculateStocks:
         #print(df.head())
         etfFraction = self.getETFaction(sector) #get the etf fraction of the sector
         stocksdf = pd.DataFrame(columns=['ETF', 'Ticker', 'Technical Action', 'Score'])
-        for symbol in df['Unnamed: 0']:
+        for symbol in df['Ticker']:
             if symbol == 'Other':
                 continue
 
@@ -305,10 +272,6 @@ class CalculateStocks:
             elif type == 'income':
                 self.weightdict = {'Forward EPS': 3, 'Forward P/E': 1, 'PEG Ratio': 1, 'Market Cap': 1, 'Price To Book': 1, 'Return on Equity': 1, 'Free Cash Flow': 3, 'Revenue Growth': 1, 'Dividend Yield': 3, 'Debt to Equity': 3, 'Trailing EPS': 3}
 
-
-
-
-
             # {'Forward EPS': 10, 'Forward P/E': 9, 'PEG Ratio': 8, 'Market Cap': 7, 'Price To Book': 6, 'Return on Equity': 5, 'Free Cash Flow': 4, 'Revenue Growth': 3, 'Dividend Yield': 2, 'Deb To Equity': 1}
             
             sc = self.getScore(sector, symbol, sharpe, self.weightdict)
@@ -324,13 +287,6 @@ class CalculateStocks:
         stocksdf['date'] = datetime.now().strftime('%Y-%m-%d')
     
         # Connect to SQLite database (it will be created if it doesn't exist)
-        conn = sqlite3.connect('data.db')
-        
-        # Save the DataFrame to the SQLite database
-        stocksdf.to_sql('action', conn, if_exists='append', index=True)
-        
-        conn.close()
-
 
         buys.to_csv(self.path + '/results/' + sector + '-buys.csv')
         if (sector == 'QQQ' or sector =='SPY'):
@@ -395,11 +351,6 @@ class CalculateStocks:
 
     def getScore(self, etf, stock, sharpe, columns):
         metricdf = pd.read_csv(self.path + '/metrics/' + etf + '-metrics.csv')
-        conn = sqlite3.connect('data.db')
-        cursor = conn.cursor()
-        query = "SELECT * FROM metrics WHERE ETF = ?"
-        metricdf = pd.read_sql_query(query, conn, params=(etf,))
-                # Reversing the column name mapping
         metricdf = metricdf.rename(columns={
             'Dividend_Yield': 'Dividend Yield',
             'Forward_PE': 'Forward P/E',
@@ -421,9 +372,10 @@ class CalculateStocks:
             'Current_Ratio': 'Current Ratio',
             'Current_Price': 'Current Price'
         })
-
-        conn.close()
-        # metricdf = metricdf.fillna(0)
+        # print(columns.keys())
+        # print(metricdf.columns)
+        # print(stock)
+        metricdf = metricdf.fillna(0)
         factordict = {'Beta': -1 ,'Dividend Yield': 1, 'Forward P/E' : -1,'Trailing P/E': -1, 'Market Cap': 1, 'Trailing EPS': 1, 'Forward EPS': 1, 'PEG Ratio': -1, 'Price To Book': -1, 'E/V to EBITDA': -1, 'Free Cash Flow': 1, 'Debt to Equity': -1 ,'Earnings Growth': 1,'Ebitda margins': 1,'Quick Ratio': 1,'Target Mean Price': 1,'Return on Equity': 1 ,'Revenue Growth': 1,'Current Ratio': 1,'Current Price': 1}
         # print(metricdf.columns)
         # print(metricdf.columns[0])
@@ -438,8 +390,12 @@ class CalculateStocks:
         # print(tickerrow)
         # if etf == "XLV":
         #     print(stock)
+        # print(metricdf['PEG Ratio'].head(5))
+        # print(metricdf['PEG Ratio'].std())
+        # print(columns.get('Forward P/E'))
+        # print(sharpe)
         for x in columns.keys():
-            if x == 'id' or x == 'ETF' or x == 'index' or x == 'date':
+            if x == 'id' or x == 'ETF' or x == 'index' or x == 'date' or x == 'Current Price' or x == 'PEG Ratio':
                 continue
             mean = metricdf[x].mean()
             sd = metricdf[x].std()
@@ -458,7 +414,18 @@ class CalculateStocks:
             #     print(val)
                 # print(a)
             score += val
+            if pd.isna(score):
+                print("Score became NaN. Debugging required.")
+                print(val)
+                print(mean)
+                print(sd)
+                print(x)
+                break
+
+                
+                
         score += sharpe * 2
+        # print(score)
         return(score)
         
         
