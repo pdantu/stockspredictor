@@ -147,6 +147,8 @@ class CalculateStocks:
         portfolio['Dollar Amount'] = portfolio['weight'] / 100 * 5000
         portfolio.sort_values(by='weight',inplace=True,ascending=False)
         portfolio.to_csv('{0}/portfolio/portfolio{1}.csv'.format(path, type))
+        log_path = f"{self.path}/logs/{date.today()}_portfoliogrowth.csv"
+        portfolio.to_csv(log_path, index=False)
         self.createGraphic(path)
 
     def find_csv_filenames(self, path_to_dir, suffix=".csv" ):
