@@ -25,38 +25,15 @@ from bs4 import BeautifulSoup
 from transformers import BertTokenizer, BertForSequenceClassification
 import torch
 import torch.nn.functional as F
-import nltk
-nltk.download('vader_lexicon')
-from nltk.sentiment import SentimentIntensityAnalyzer
+# import nltk
+# nltk.download('vader_lexicon')
+# from nltk.sentiment import SentimentIntensityAnalyzer
 import sqlite3
 from datetime import datetime
 
 class CalculateStocks:
-    def drop_table():
-        conn = sqlite3.connect('data.db')
-        cursor = conn.cursor()
-        cursor.execute('DROP TABLE IF EXISTS results')
-        conn.commit()
-        conn.close()
     
-    def create_table():
-        conn = sqlite3.connect('data.db')
-        cursor = conn.cursor()
-
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS action (
-                id INTEGER PRIMARY KEY,
-                ETF TEXT,
-                Ticker TEXT,
-                Technical_Action TEXT,
-                Score REAL,
-                date TEXT
-            )
-        ''')
-
-        conn.commit()
-        conn.close()
-
+    
     def main(self): 
         # etfs = ['XLB', 'XLC', 'XLE', 'XLF', 'XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY']
         # tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
@@ -85,73 +62,7 @@ class CalculateStocks:
         # self.sendEmail(self.path)
         # self.sendEmail(self.path)
         # self.stockPrediction('AAPL')
-    def stockPrediction(self, stock):
-        s = yf.Ticker(stock)
-        from sklearn.model_selection import train_test_split
-        from sklearn.preprocessing import MinMaxScaler
-        from tensorflow.keras.models import Sequential
-        from tensorflow.keras.layers import LSTM, Dense
-        import matplotlib.pyplot as plt
-
-        # Assuming you have a pandas DataFrame called 'data' with a column named 'TimeSeriesData'
-        # Ensure the 'TimeSeriesData' column is in the appropriate format (e.g., numeric)
-
-        # Convert the time series data into a numpy array
-        col = s.history('max')
-        col = col['Close']
-        col = col.dropna()
-        data_array = col.values.reshape(-1, 1)
-
-        # Perform data normalization using Min-Max scaling
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        scaled_data = scaler.fit_transform(data_array)
-
-        # Split the data into training and testing sets
-        train_data, test_data = train_test_split(scaled_data, test_size=0.2, shuffle=False)
-
-        # Define the number of previous time steps to consider for each prediction
-        n_steps = 10
-
-        # Create input sequences and corresponding target values
-        def create_sequences(data, n_steps):
-            X = []
-            y = []
-            for i in range(n_steps, len(data)):
-                X.append(data[i - n_steps:i, 0])
-                y.append(data[i, 0])
-            return np.array(X), np.array(y)
-
-        train_X, train_y = create_sequences(train_data, n_steps)
-        test_X, test_y = create_sequences(test_data, n_steps)
-
-        # Reshape the input sequences to fit the LSTM input shape
-        train_X = np.reshape(train_X, (train_X.shape[0], train_X.shape[1], 1))
-        test_X = np.reshape(test_X, (test_X.shape[0], test_X.shape[1], 1))
-
-        # Build the LSTM model
-        model = Sequential()
-        model.add(LSTM(units=50, activation='relu', input_shape=(n_steps, 1)))
-        model.add(Dense(units=1))
-        model.compile(optimizer='adam', loss='mean_squared_error')
-
-        # Train the LSTM model
-        model.fit(train_X, train_y, epochs=10, batch_size=32)
-
-        # Make predictions on the test data
-        predictions = model.predict(test_X)
-
-        # Inverse transform the scaled predictions and actual values to their original scale
-        predictions = scaler.inverse_transform(predictions)
-        actual_values = scaler.inverse_transform(test_y.reshape(-1, 1))
-        print(test_X[-1])
-        # Plot the predicted values and actual values
-        plt.plot(predictions, label='Predicted')
-        plt.plot(actual_values, label='Actual')
-        plt.xlabel('Time')
-        plt.ylabel('Value')
-        plt.legend()
-        plt.show()
-
+    
     def addCompName(self, data, type):
         names = []
         for x in data['Ticker']:
@@ -256,7 +167,8 @@ class CalculateStocks:
         #print(df.head())
         etfFraction = self.getETFaction(sector) #get the etf fraction of the sector
         stocksdf = pd.DataFrame(columns=['ETF', 'Ticker', 'Technical Action', 'Score'])
-        for symbol in df['Unnamed: 0']:
+        for symbol in df['Ticker']:
+
             if symbol == 'Other':
                 continue
 
@@ -300,6 +212,16 @@ class CalculateStocks:
             if type == 'growth':
                 # {'Forward EPS': 3, 'Forward P/E': 3, 'PEG Ratio': 3, 'Market Cap': 1, 'Price To Book': 1, 'Return on Equity': 3, 'Free Cash Flow': 1, 'Revenue Growth': 3, 'Dividend Yield': 1, 'Debt To Equity': 1, 'Earnings Growth': 3}
                 self.weightdict = {'Forward EPS': 3, 'Forward P/E': 3, 'PEG Ratio': 3, 'Market Cap': 1, 'Price To Book': 1, 'Return on Equity': 3, 'Free Cash Flow': 1, 'Revenue Growth': 3, 'Dividend Yield': 1, 'Debt to Equity': 1, 'Earnings Growth': 3}
+                # self.weightdict = {
+                #     'Forward P/E': 3,
+                #     'PEG Ratio': 3,
+                #     'Market Cap': 1,
+                #     'Price To Book': 1,
+                #     'Return on Equity': 3,
+                #     'Free Cash Flow': 1,
+                #     'Dividend Yield': 1,
+                #     'Debt to Equity': 1
+                # }
             elif type == 'value':
                 self.weightdict = {'Trailing P/E': 3, 'Forward P/E': 3, 'PEG Ratio': 1, 'Market Cap': 1, 'Price To Book': 3, 'Return on Equity': 1, 'Free Cash Flow': 3, 'Revenue Growth': 1, 'Dividend Yield': 3, 'Debt to Equity': 1, 'E/V to EBITDA': 3, 'Beta': 3}
             elif type == 'income':
@@ -323,15 +245,7 @@ class CalculateStocks:
         stocksdf.to_csv(self.path + '/results/' + sector + '-action.csv')
         stocksdf['date'] = datetime.now().strftime('%Y-%m-%d')
     
-        # Connect to SQLite database (it will be created if it doesn't exist)
-        conn = sqlite3.connect('data.db')
         
-        # Save the DataFrame to the SQLite database
-        stocksdf.to_sql('action', conn, if_exists='append', index=True)
-        
-        conn.close()
-
-
         buys.to_csv(self.path + '/results/' + sector + '-buys.csv')
         if (sector == 'QQQ' or sector =='SPY'):
             return d_list
@@ -346,20 +260,36 @@ class CalculateStocks:
 
 
     def getPrices(self, ticker):
-        a  = yf.Ticker(ticker)  
-        prices = a.history('max')
-        prices = prices.reset_index()
-        if prices.shape[0] == 0:
-            return prices
-        prices['20DayEMA'] = prices['Close'].ewm(span = 20).mean()
-        prices['100DayEMA'] = prices['Close'].ewm(span = 100).mean()
-        prices['50DaySMA'] = prices['Close'].rolling(50).mean()
-        prices['200DaySMA'] = prices['Close'].rolling(200).mean()
-        prices['26DayEMA'] = prices['Close'].ewm(26).mean()
-        prices['12DayEMA'] = prices['Close'].ewm(12).mean()
-        prices['MACD'] = prices['12DayEMA'] - prices['26DayEMA']
-        prices['MACD Signal'] = prices['MACD'].ewm(9).mean()
-        return prices
+        FMP_API_KEY = 'uv0qboZyS4HJzfriyBUf9Q9RZJDgw0pB'
+        url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?serietype=line&apikey={FMP_API_KEY}"
+
+        try:
+            resp = requests.get(url)
+            data = resp.json().get("historical", [])
+            if not data:
+                return pd.DataFrame()
+
+            df = pd.DataFrame(data)
+            df['date'] = pd.to_datetime(df['date'])
+            df = df.sort_values(by='date').reset_index(drop=True)
+            df = df[['date', 'close']].rename(columns={'close': 'Close'})
+
+            # Calculate technical indicators
+            df['20DayEMA'] = df['Close'].ewm(span=20).mean()
+            df['100DayEMA'] = df['Close'].ewm(span=100).mean()
+            df['50DaySMA'] = df['Close'].rolling(window=50).mean()
+            df['200DaySMA'] = df['Close'].rolling(window=200).mean()
+            df['12DayEMA'] = df['Close'].ewm(span=12).mean()
+            df['26DayEMA'] = df['Close'].ewm(span=26).mean()
+            df['MACD'] = df['12DayEMA'] - df['26DayEMA']
+            df['MACD Signal'] = df['MACD'].ewm(span=9).mean()
+
+            return df
+
+        except Exception as e:
+            print(f"Error fetching price data for {ticker}: {e}")
+            return pd.DataFrame()
+
 
     def getETFaction(self, etf):
         prices = self.getPrices(etf)
@@ -394,12 +324,10 @@ class CalculateStocks:
 
 
     def getScore(self, etf, stock, sharpe, columns):
-        metricdf = pd.read_csv(self.path + '/metrics/' + etf + '-metrics.csv')
-        conn = sqlite3.connect('data.db')
-        cursor = conn.cursor()
-        query = "SELECT * FROM metrics WHERE ETF = ?"
-        metricdf = pd.read_sql_query(query, conn, params=(etf,))
-                # Reversing the column name mapping
+    # Read from the pre-generated ETF metrics CSV
+        metricdf = pd.read_csv(self.path + f'/metrics/{etf}-metrics.csv')
+
+        # Rename columns to match scoring keys
         metricdf = metricdf.rename(columns={
             'Dividend_Yield': 'Dividend Yield',
             'Forward_PE': 'Forward P/E',
@@ -422,44 +350,38 @@ class CalculateStocks:
             'Current_Price': 'Current Price'
         })
 
-        conn.close()
-        # metricdf = metricdf.fillna(0)
-        factordict = {'Beta': -1 ,'Dividend Yield': 1, 'Forward P/E' : -1,'Trailing P/E': -1, 'Market Cap': 1, 'Trailing EPS': 1, 'Forward EPS': 1, 'PEG Ratio': -1, 'Price To Book': -1, 'E/V to EBITDA': -1, 'Free Cash Flow': 1, 'Debt to Equity': -1 ,'Earnings Growth': 1,'Ebitda margins': 1,'Quick Ratio': 1,'Target Mean Price': 1,'Return on Equity': 1 ,'Revenue Growth': 1,'Current Ratio': 1,'Current Price': 1}
-        # print(metricdf.columns)
-        # print(metricdf.columns[0])
-        # subdf = metricdf[columns]
-        #print(metricdf['Unnamed: 0'].head())
-        score = 0
-        # metricdf.rename(columns={metricdf.columns[0]:"Symbol"}, inplace=True)
-        #print(metricdf['Symbol'].head())
+        # Scoring logic
+        factordict = {
+            'Beta': -1, 'Dividend Yield': 1, 'Forward P/E': -1, 'Trailing P/E': -1,
+            'Market Cap': 1, 'Trailing EPS': 1, 'Forward EPS': 1, 'PEG Ratio': -1,
+            'Price To Book': -1, 'E/V to EBITDA': -1, 'Free Cash Flow': 1, 'Debt to Equity': -1,
+            'Earnings Growth': 1, 'Ebitda margins': 1, 'Quick Ratio': 1, 'Target Mean Price': 1,
+            'Return on Equity': 1, 'Revenue Growth': 1, 'Current Ratio': 1, 'Current Price': 1
+        }
+
         tickerrow = metricdf[metricdf['Ticker'] == stock]
-        # print(stock)
+        if tickerrow.empty:
+            return 0
+
         tickerrow = tickerrow.fillna(0)
-        # print(tickerrow)
-        # if etf == "XLV":
-        #     print(stock)
+        score = 0
+
         for x in columns.keys():
-            if x == 'id' or x == 'ETF' or x == 'index' or x == 'date':
+            if x not in metricdf.columns:
                 continue
             mean = metricdf[x].mean()
             sd = metricdf[x].std()
             val = tickerrow[x].iloc[0]
-            if val - mean > 0:
-                val = val - mean
-                val = val / sd
-                val = val * factordict.get(x) * columns.get(x)
-            else:
-                val = mean - val
-                val = val / sd
-                val = val * factordict.get(x) * columns.get(x)
-            # a = val / mean
-            # if etf == "XLV":
-            #     print(x)
-            #     print(val)
-                # print(a)
-            score += val
+            if pd.isna(val):
+                continue 
+            if sd == 0:
+                continue
+            z = (val - mean) / sd if val >= mean else (mean - val) / sd
+            score += z * factordict.get(x, 0) * columns.get(x)
+
         score += sharpe * 2
-        return(score)
+        return score
+
         
         
     def createGraphic(self, path):
