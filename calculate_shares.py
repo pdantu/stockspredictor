@@ -1,5 +1,6 @@
 import pandas as pd
 import requests
+import os
 
 FMP_API_KEY = 'uv0qboZyS4HJzfriyBUf9Q9RZJDgw0pB'
 
@@ -14,13 +15,22 @@ def get_current_price(ticker):
         return None
 
 def main():
-    df = pd.read_csv('portfolio/portfoliogrowth.csv')
-    df['Current Price'] = df['Ticker'].apply(get_current_price)
-    df['Shares'] = df['Dollar Amount'] / df['Current Price']
-    df['Shares'] = df['Shares'].round(2)
+    portfolio_types = ['value', 'income']
+    path = os.getcwd()
 
-    df.to_csv('portfolio/portfoliogrowth_with_shares.csv', index=False)
-    print('Saved: portfolio/portfoliogrowth_with_shares.csv')
+    for ptype in portfolio_types:
+        file_path = f'{path}/portfolio/portfolio{ptype}.csv'
+        df = pd.read_csv(file_path)
+        print(f'Processing: {file_path}')
+        print(df['Ticker'])
+
+        df['Current Price'] = df['Ticker'].apply(get_current_price)
+        df['Shares'] = df['Dollar Amount'] / df['Current Price']
+        df['Shares'] = df['Shares'].round(2)
+
+        output_path = f'{path}/portfolio/portfolio{ptype}_with_shares.csv'
+        df.to_csv(output_path, index=False)
+        print(f'Saved: {output_path}')
 
 if __name__ == "__main__":
     main()

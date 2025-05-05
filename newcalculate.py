@@ -14,6 +14,7 @@ class CalculateStocks:
     def main(self):
         f_list = self.loop(self.path, False)
         types = ['growth']
+        types = ['value', 'income']
         for t in types:
             self.calcResults(self.path, f_list, t)
             df = pd.read_csv(f'{self.path}/portfolio/portfolio{t}.csv')
@@ -64,8 +65,8 @@ class CalculateStocks:
 
         stocksdf.sort_values(by='Score', ascending=False, inplace=True)
         buys = stocksdf[stocksdf['Technical Action'] == 'Buy']
-        stocksdf.to_csv(f'{self.path}/results/{sector}-action.csv', index=False)
-        buys.to_csv(f'{self.path}/results/{sector}-buys.csv', index=False)
+        stocksdf.to_csv(f'{self.path}/results/{sector}{type_}-action.csv', index=False)
+        buys.to_csv(f'{self.path}/results/{sector}{type_}-buys.csv', index=False)
 
         strongbuys = buys[buys['Score'] > 0]
         x = buys[buys['Score'] > 70]
@@ -155,7 +156,36 @@ class CalculateStocks:
                 'Price To Book': 1, 'Return on Equity': 3, 'Free Cash Flow': 1,
                 'Revenue Growth': 3, 'Dividend Yield': 1, 'Debt to Equity': 1, 'Earnings Growth': 3
             }
-        # Add logic for value/income if needed
+        elif type_ == 'value':
+            self.weightdict = {
+                'Trailing P/E': 3,
+                'Forward P/E': 3,
+                'PEG Ratio': 2,
+                'Price To Book': 3,
+                'Return on Equity': 2,
+                'Market Cap': 1,
+                'Debt to Equity': 2,
+                'E/V to EBITDA': 3,
+                'Free Cash Flow': 2,
+                'Dividend Yield': 1,
+                'Revenue Growth': 1,
+                'Beta': 1
+            }
+        elif type_ == 'income':
+            self.weightdict = {
+                'Dividend Yield': 3,
+                'Free Cash Flow': 3,
+                'Forward EPS': 3,
+                'Trailing EPS': 3,
+                'Debt to Equity': 2,
+                'Return on Equity': 2,
+                'Forward P/E': 2,
+                'PEG Ratio': 1,
+                'Market Cap': 1,
+                'Price To Book': 1,
+                'Revenue Growth': 1  # income stocks can still grow
+            }
+
 
     def getScore(self, etf, stock, sharpe, columns):
         df = pd.read_csv(f'{self.path}/metrics/{etf}-metrics.csv')
