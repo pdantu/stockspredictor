@@ -12,17 +12,43 @@ class CalculateStocks:
         self.api_key = 'uv0qboZyS4HJzfriyBUf9Q9RZJDgw0pB'
 
     def main(self):
-        f_list = self.loop(self.path, False)
-        types = ['growth']
-        types = ['value', 'income']
-        for t in types:
-            self.calcResults(self.path, f_list, t)
-            df = pd.read_csv(f'{self.path}/portfolio/portfolio{t}.csv')
-            self.addCompName(df, t)
+        print(self.hasUpcomingEarnings('VRSK'))
+        # f_list = self.loop(self.path, False)
+        # types = ['growth']
+        # types = ['value', 'income']
+        # for t in types:
+        #     self.calcResults(self.path, f_list, t)
+        #     df = pd.read_csv(f'{self.path}/portfolio/portfolio{t}.csv')
+        #     self.addCompName(df, t)
 
     def loop(self, path, results):
         path += "/metrics" if not results else "results"
         return [f for f in os.listdir(path) if f.endswith(".csv")]
+    
+    def hasUpcomingEarnings(self, ticker):
+        today = datetime.today().date()
+        two_weeks = today + timedelta(days=14)
+        url = f"https://financialmodelingprep.com/api/v3/earning_calendar?symbol={ticker}&limit=5&apikey={self.api_key}"
+
+        try:
+            print(f"🔍 Checking earnings for {ticker}")
+            resp = requests.get(url)
+            data = resp.json()
+
+            if not data:
+                print(f"ℹ️ No earnings data returned for {ticker}")
+                return False
+            
+            for entry in data:
+                report_date = datetime.strptime(entry['date'], "%Y-%m-%d").date()
+                print(f"📅 Earnings date for {ticker}: {report_date}")
+                if today <= report_date <= two_weeks:
+                    print(f"⚠️ Skipping {ticker} — earnings on {report_date}")
+                    return True
+        except Exception as e:
+            print(f"❌ Error checking earnings for {ticker}: {e}")
+        return False
+
 
     def calcResults(self, path, f_list, type_):
         d_list = []
