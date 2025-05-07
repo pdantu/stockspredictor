@@ -1,7 +1,18 @@
 # stockspredicter
 
+#5/7/25
+1. Incorporate earnings dates to be removed within 2 weeks
+     a. Or could forecast earnings
+2. Economic indicators
+3. News indicators
+     a. Twitter
+     b. News
+     c. Government officials news
+     d. Fed rates
+4. Email fix
+5. update front end
 
-# 08/13/2022
+
 
 how calculate.py works: 
 
@@ -16,10 +27,6 @@ process(df) --> this is the function where u should add code for a single ETF. t
 
 
 
-
-# 08/12/2022
-
-Tasks -- 
    1) Technical Indicators on ETF's (50vs200 Exponentional Moving Averages, MACD vs MACD Signal, Relative Strength Index (RSI))
    2) Technical Indicators on stocks in sector (50vs200 Exponentional Moving Averages, MACD vs MACD Signal, Relative Strength Index)
         - do all the scoring, and rank the stocks for each sector 
@@ -49,22 +56,7 @@ Tasks --
         19) Return on Equity  --used 	
         20) Revenue Growth	--used
         21) Current Ratio	
-        22) Dividend Yield	
-
-    4) scrape for list of etfs (free)
-       - for hedging (correlation against the spy price)
-    
-
-    5) Emailing/text message with list of stocks to buy or sell 
-
-    6) Automation -- set up a cron job to run the script to generate market data into csv every day 
-
-    7) sentiment analysis on the 'news' section 
-
-    8) scrape yahoo finance 
-
-    9) LSTM models with RNN 
-
+        22) Dividend Yield
 
 
 
