@@ -18,7 +18,7 @@ import os
 207.79137706275424
 
 # Load previous and current portfolio
-previous = pd.read_csv('logs/2024-07-18_portfolio.csv')  # 🔁 update this file name as needed
+previous = pd.read_csv('logs/2025-05-05_portfoliogrowth.csv')  # 🔁 update this file name as needed
 current = pd.read_csv('portfolio/portfoliogrowth.csv')
 
 # Extract tickers

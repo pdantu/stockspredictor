@@ -12,42 +12,108 @@ class CalculateStocks:
         self.api_key = 'uv0qboZyS4HJzfriyBUf9Q9RZJDgw0pB'
 
     def main(self):
-        print(self.hasUpcomingEarnings('VRSK'))
-        # f_list = self.loop(self.path, False)
-        # types = ['growth']
-        # types = ['value', 'income']
-        # for t in types:
-        #     self.calcResults(self.path, f_list, t)
-        #     df = pd.read_csv(f'{self.path}/portfolio/portfolio{t}.csv')
-        #     self.addCompName(df, t)
+        #print(self.get_sentiment_score('AAPL'))
+
+        f_list = self.loop(self.path, False)
+        types = ['growth']
+        types = ['growth', 'value', 'income']
+        for t in types:
+            self.calcResults(self.path, f_list, t)
+            df = pd.read_csv(f'{self.path}/portfolio/portfolio{t}.csv')
+            self.addCompName(df, t)
 
     def loop(self, path, results):
         path += "/metrics" if not results else "results"
         return [f for f in os.listdir(path) if f.endswith(".csv")]
-    
-    def hasUpcomingEarnings(self, ticker):
+
+    def get_sentiment_score(self, ticker):
+        url = f"https://financialmodelingprep.com/api/v4/stock_news?tickers={ticker}&limit=5&apikey={self.api_key}"
+        try:
+            resp = requests.get(url)
+            articles = resp.json()
+            if not articles:
+                print(f"No news articles found for {ticker}")
+                return 0  # Neutral if no news
+
+            from textblob import TextBlob
+            score = 0
+            for article in articles:
+                text = article['title'] + ". " + article.get('text', '')
+                polarity = TextBlob(text).sentiment.polarity
+                score += polarity
+            avg_score = score / len(articles)
+
+            return avg_score  # Range: ~[-1, 1]
+        except Exception as e:
+            print(f"Error fetching sentiment for {ticker}: {e}")
+            return 0
+
+    def get_recent_earnings_report(self, ticker):
         today = datetime.today().date()
-        two_weeks = today + timedelta(days=14)
-        url = f"https://financialmodelingprep.com/api/v3/earning_calendar?symbol={ticker}&limit=5&apikey={self.api_key}"
+        two_weeks_ago = today - timedelta(days=14)
+
+        url = f"https://financialmodelingprep.com/api/v3/income-statement/{ticker}?limit=4&apikey={self.api_key}"
 
         try:
-            print(f"🔍 Checking earnings for {ticker}")
-            resp = requests.get(url)
-            data = resp.json()
+            response = requests.get(url)
+            data = response.json()
+            if not isinstance(data, list) or not data:
+                return None
 
-            if not data:
-                print(f"ℹ️ No earnings data returned for {ticker}")
-                return False
-            
-            for entry in data:
-                report_date = datetime.strptime(entry['date'], "%Y-%m-%d").date()
-                print(f"📅 Earnings date for {ticker}: {report_date}")
-                if today <= report_date <= two_weeks:
-                    print(f"⚠️ Skipping {ticker} — earnings on {report_date}")
-                    return True
+            for report in data:
+                report_date = datetime.strptime(report['date'], "%Y-%m-%d").date()
+                if two_weeks_ago <= report_date <= today:
+                    return {
+                        'eps': report.get('eps'),
+                        'revenue': report.get('revenue'),
+                        'netIncome': report.get('netIncome'),
+                        'date': report.get('date')
+                    }
+            return None
         except Exception as e:
-            print(f"❌ Error checking earnings for {ticker}: {e}")
-        return False
+            print(f"Error fetching income report for {ticker}: {e}")
+            return None
+
+
+    def had_recent_earnings(self, ticker):
+        today = datetime.today().date()
+        two_weeks_ago = today - timedelta(days=14)
+
+        url = (
+            f"https://financialmodelingprep.com/api/v3/earning_calendar"
+            f"?symbol={ticker}&from={two_weeks_ago}&to={today}&apikey={self.api_key}"
+        )
+
+        try:
+            response = requests.get(url)
+            data = response.json()
+
+            if isinstance(data, list) and data:
+                seen_dates = set()
+
+                for entry in data:
+                    earnings_date = entry.get('date')
+                    if earnings_date:
+                        parsed_date = datetime.strptime(earnings_date, "%Y-%m-%d").date()
+
+                        # Only accept actual earnings dates, not predicted or invalid
+                        if two_weeks_ago <= parsed_date <= today:
+                            seen_dates.add(parsed_date)
+
+                for dt in sorted(seen_dates):
+                    print(f"{ticker} reported earnings on {dt}")
+
+                return bool(seen_dates)
+
+            print(f"No valid recent earnings for {ticker}")
+            return False
+
+        except Exception as e:
+            print(f"Error checking earnings for {ticker}: {e}")
+            return False
+
+
+
 
 
     def calcResults(self, path, f_list, type_):
@@ -78,9 +144,18 @@ class CalculateStocks:
             if symbol == 'Other':
                 continue
             prices = self.getPrices(symbol)
-            if prices.empty:
+            if prices.empty or len(prices) < 30:
                 continue
+            try:
+                returns_20d = (prices['Close'].iloc[-1] - prices['Close'].iloc[-21]) / prices['Close'].iloc[-21]
+                ema_slope = prices['20DayEMA'].iloc[-1] - prices['20DayEMA'].iloc[-5]
 
+                if returns_20d < 0.01 or ema_slope < 0:
+                    print(f"Skipping {symbol} — weak trend ({returns_20d:.2%}, EMA slope {ema_slope:.2f})")
+                    continue
+            except Exception as e:
+                print(f"Trend check failed for {symbol}: {e}")
+                continue
             sharpe = self.calcSharpe(prices)
             measure = self.getSignalMeasure(prices)
             self.setWeightDict(type_)

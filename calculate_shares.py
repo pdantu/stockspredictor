@@ -15,7 +15,7 @@ def get_current_price(ticker):
         return None
 
 def main():
-    portfolio_types = ['value', 'income']
+    portfolio_types = ['growth']
     path = os.getcwd()
 
     for ptype in portfolio_types:
@@ -27,6 +27,7 @@ def main():
         df['Current Price'] = df['Ticker'].apply(get_current_price)
         df['Shares'] = df['Dollar Amount'] / df['Current Price']
         df['Shares'] = df['Shares'].round(2)
+        df['Shares'] = df['Shares'] * 0.4
 
         output_path = f'{path}/portfolio/portfolio{ptype}_with_shares.csv'
         df.to_csv(output_path, index=False)
