@@ -146,22 +146,29 @@ class CalculateStocks:
             prices = self.getPrices(symbol)
             if prices.empty or len(prices) < 30:
                 continue
+            trend_valid = True
             try:
                 returns_20d = (prices['Close'].iloc[-1] - prices['Close'].iloc[-21]) / prices['Close'].iloc[-21]
                 ema_slope = prices['20DayEMA'].iloc[-1] - prices['20DayEMA'].iloc[-5]
-
                 if returns_20d < 0.01 or ema_slope < 0:
-                    print(f"Skipping {symbol} — weak trend ({returns_20d:.2%}, EMA slope {ema_slope:.2f})")
-                    continue
+                    trend_valid = False
+                    print(f"{symbol} has weak trend ({returns_20d:.2%}, EMA slope {ema_slope:.2f})")
             except Exception as e:
                 print(f"Trend check failed for {symbol}: {e}")
                 continue
+            
+
+
             sharpe = self.calcSharpe(prices)
             measure = self.getSignalMeasure(prices)
             self.setWeightDict(type_)
 
             sc = self.getScore(sector, symbol, sharpe, self.weightdict)
-            action = 'Buy' if measure == 1 else 'Sell'
+            if not trend_valid:
+                action = 'Ignore'
+            else:
+                action = 'Buy' if measure == 1 else 'Sell'
+            #action = 'Buy' if measure == 1 else 'Sell'
             stocksdf.loc[len(stocksdf)] = [sector, symbol, action, sc]
 
         stocksdf.sort_values(by='Score', ascending=False, inplace=True)
